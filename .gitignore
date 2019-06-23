@@ -1,0 +1,4 @@
+./.DS_Store
+./ffmpeg-android/gradle
+./ffmpeg-android/local.properties
+./ffmpeg-android/app/build
