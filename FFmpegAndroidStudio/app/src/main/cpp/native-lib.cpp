@@ -119,9 +119,24 @@ Java_com_luopan_ffmpeg_MainActivity_avFormatOpenInput(JNIEnv *env, jobject thiz,
          video->codecpar->format);
 
     // 3、读取帧数据
+    AVPacket *pkt = av_packet_alloc();
+    for (;;) {
+        int ret = av_read_frame(ic, pkt);
+        if (ret != 0) {
+            LOGW("读取到文件的结尾处: ");
+            int seekPosition = 0;
+            av_seek_frame(ic, videoStream, seekPosition, AVSEEK_FLAG_BACKWARD | AVSEEK_FLAG_FRAME);
+            continue;
+        }
+        LOGI("stream = %d size = %d pts = %lld flag = %d",
+                pkt->stream_index,
+                pkt->size,
+                pkt->pts,
+                pkt->flags);
 
-
-
+        // 释放资源。否则会有内存泄漏
+        av_packet_unref(pkt);
+    }
     avformat_close_input(&ic);
     env->ReleaseStringUTFChars(path, fPath);
 }
