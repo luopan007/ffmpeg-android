@@ -46,5 +46,5 @@ Patches should be submitted to the ffmpeg-devel mailing list using
 avoided because they are not part of our review process and will be ignored.
 
 
-## 参考
+## 配置文件的参考地址
 https://juejin.im/post/5e130df55188253a8b42ebac
