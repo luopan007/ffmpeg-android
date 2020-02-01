@@ -30,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
 
         avRegisterAll();
         avFormatNetworkInit();
+        avCodecRegisterAll();
         avFormatOpenInput("/sdcard/DCIM/test.mp4");
     }
 
@@ -82,6 +83,8 @@ public class MainActivity extends AppCompatActivity {
     public native void avRegisterAll();
 
     public native void avFormatNetworkInit();
+
+    public native void avCodecRegisterAll();
 
     public native void avFormatOpenInput(String path);
 }
