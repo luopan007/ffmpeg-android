@@ -119,6 +119,8 @@ Java_com_luopan_ffmpeg_MainActivity_avFormatOpenInput(JNIEnv *env, jobject thiz,
     }
     AVCodecContext *vc = avcodec_alloc_context3(vCodec); // 创建视频解码器内存空间
     AVCodecContext *ac = avcodec_alloc_context3(aCodec); // 创建音频解码器内存空间
+    avcodec_parameters_to_context(vc, ic->streams[videoStream]->codecpar); // 把视频参数赋值给视频解码器
+    avcodec_parameters_to_context(ac, ic->streams[audioStream]->codecpar); // 把音频参数赋值给音频解码器
     vc->thread_count = 1; // 视频解码采用单线程
     ac->thread_count = 1; // 音频解码采用单线程
     ret = avcodec_open2(vc, 0, 0); // 打开视频解码器
