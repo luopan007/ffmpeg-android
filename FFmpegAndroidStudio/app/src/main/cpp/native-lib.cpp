@@ -24,8 +24,22 @@ extern "C" {
  * @param rational 待转换的分数
  * @return 转换后的小数
  */
-static double r2d(AVRational rational){
-    return rational.num == 0 || rational.den == 0 ? 0.0 : (double) rational.num / (double)rational.den;
+static double r2d(AVRational rational) {
+    return rational.num == 0 || rational.den == 0 ? 0.0 : (double) rational.num /
+                                                          (double) rational.den;
+}
+
+/**
+ * 获取当前时间
+ *
+ * @return 当前时间，毫秒为单位
+ */
+long long getNowTimeMs() {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    int sec = tv.tv_sec % 36000;
+    long long millisecond = sec * 1000 + tv.tv_usec / 1000;
+    return millisecond;
 }
 
 
@@ -88,18 +102,18 @@ Java_com_luopan_ffmpeg_MainActivity_avFormatOpenInput(JNIEnv *env, jobject thiz,
             LOGI("视频数据");
             videoStream = i;
             fps = r2d(as->avg_frame_rate);
-            LOGI("fps = %d, width=%d, height=%d, code id = %d, pixformat = %d.",fps,
-                    as->codecpar->width,
-                    as->codecpar->height,
-                    as->codecpar->codec_id,
-                    as->codecpar->format);
+            LOGI("fps = %d, width=%d, height=%d, code id = %d, pixformat = %d.", fps,
+                 as->codecpar->width,
+                 as->codecpar->height,
+                 as->codecpar->codec_id,
+                 as->codecpar->format);
         } else if (as->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
             LOGI("音频数据");
             audioStream = i;
             LOGI("sample_rate=%d, channel=%d, samplae_format=%d",
-                    as->codecpar->sample_rate,
-                    as->codecpar->channels,
-                    as->codecpar->format);
+                 as->codecpar->sample_rate,
+                 as->codecpar->channels,
+                 as->codecpar->format);
         } else {
             LOGI("其他数据");
 
@@ -137,7 +151,14 @@ Java_com_luopan_ffmpeg_MainActivity_avFormatOpenInput(JNIEnv *env, jobject thiz,
     // 3、读取帧数据
     AVPacket *pkt = av_packet_alloc(); // 分配用来保存解码前的帧数据的内存空间
     AVFrame *frame = av_frame_alloc(); // 分配用来保存解码后的帧数据的内存空间
-    for (; ;) {
+    long long start = getNowTimeMs(); // 获取当前时间
+    int frameCount = 0; // 当前帧数
+    for (;;) {
+        if (getNowTimeMs() - start >= 3000) {
+            LOGI("now fps = %d", frameCount / 3); // 计算解码器的实际解码帧率
+            start = getNowTimeMs();
+            frameCount = 0;
+        }
         ret = av_read_frame(ic, pkt);
         if (ret != 0) {
             LOGW("读取文件打破结尾处,从头开始播放。");
@@ -145,11 +166,11 @@ Java_com_luopan_ffmpeg_MainActivity_avFormatOpenInput(JNIEnv *env, jobject thiz,
             av_seek_frame(ic, videoStream, seekPosition, AVSEEK_FLAG_BACKWARD | AVSEEK_FLAG_FRAME);
             continue;
         }
-        LOGW("stream = %d size =%d pts=%lld flag=%d",
-             pkt->stream_index,
-             pkt->size,
-             pkt->pts,
-             pkt->flags);
+//        LOGW("stream = %d size =%d pts=%lld flag=%d",
+//             pkt->stream_index,
+//             pkt->size,
+//             pkt->pts,
+//             pkt->flags);
 
         AVCodecContext *cc = vc;
         if (pkt->stream_index == audioStream) {
@@ -167,7 +188,9 @@ Java_com_luopan_ffmpeg_MainActivity_avFormatOpenInput(JNIEnv *env, jobject thiz,
             LOGW("接收数据失败，直接进行下一次接收数据。");
             continue;
         }
-        LOGI("接收成功，解码后的数据的PTS = %lld.", frame->pts);
+        if (cc == vc){
+            frameCount++; // 视频数据每解码成功一次，自加一次
+        }
     }
 
     // 关闭上下文
