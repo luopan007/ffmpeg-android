@@ -4,7 +4,7 @@ set -x
 API=21
 CPU=armv7-a
 #so库输出目录
-OUTPUT=/Users/luopan/Desktop/ffmpeg-4.2.2/android/$CPU
+OUTPUT=/Users/luopan/Downloads/ffmpeg-android/ffmpeg-4.2.2/android/$CPU
 # NDK的路径，根据自己的NDK位置进行设置
 NDK=/Users/luopan/opt/android-ndk-r20b
 # 编译工具链路径
