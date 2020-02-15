@@ -4,7 +4,6 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -31,8 +30,8 @@ public class MainActivity extends AppCompatActivity {
         avRegisterAll();
         avFormatNetworkInit();
         avCodecRegisterAll();
-//        avFormatOpenInput("/sdcard/DCIM/test.mp4");
-        hardDecode("/sdcard/DCIM/test.mp4");
+        avFormatOpenInput("/sdcard/DCIM/test.mp4");
+//        hardDecode("/sdcard/DCIM/test.mp4");
     }
 
     @Override
