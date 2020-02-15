@@ -9,7 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 public class MainActivity extends AppCompatActivity {
-    private static  final String TAG = "MainActivity";
+    private static final String TAG = "MainActivity";
 
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
 
@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
         avRegisterAll();
         avFormatNetworkInit();
         avCodecRegisterAll();
-        avFormatOpenInput("/sdcard/DCIM/test.mp4");
+//        avFormatOpenInput("/sdcard/DCIM/test.mp4");
 //        hardDecode("/sdcard/DCIM/test.mp4");
     }
 
