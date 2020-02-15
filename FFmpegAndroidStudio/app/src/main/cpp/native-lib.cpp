@@ -17,6 +17,7 @@ extern "C" {
 #include <libavutil/imgutils.h>
 #include <libavutil/frame.h>
 #include <libavcodec/jni.h> // 硬解码的必须的头文件
+#include <libswscale/swscale.h> // 像素格式转换的头文件
 }
 
 extern "C"
@@ -159,6 +160,13 @@ Java_com_luopan_ffmpeg_MainActivity_avFormatOpenInput(JNIEnv *env, jobject thiz,
     // 3、读取帧数据
     AVPacket *pkt = av_packet_alloc(); // 分配用来保存解码前的帧数据的内存空间
     AVFrame *frame = av_frame_alloc(); // 分配用来保存解码后的帧数据的内存空间
+
+    // 初始化像素转换的上下文对象
+    SwsContext *vctx = NULL;
+    int outWidth = 1280;
+    int outHeight = 720;
+    char *rgb = new char[1920 * 1080 * 4];
+
     long long start = getNowTimeMs(); // 获取当前时间
     int frameCount = 0; // 当前帧数
     for (;;) {
@@ -174,11 +182,6 @@ Java_com_luopan_ffmpeg_MainActivity_avFormatOpenInput(JNIEnv *env, jobject thiz,
             av_seek_frame(ic, videoStream, seekPosition, AVSEEK_FLAG_BACKWARD | AVSEEK_FLAG_FRAME);
             continue;
         }
-//        LOGW("stream = %d size =%d pts=%lld flag=%d",
-//             pkt->stream_index,
-//             pkt->size,
-//             pkt->pts,
-//             pkt->flags);
 
         AVCodecContext *cc = vc;
         if (pkt->stream_index == audioStream) {
@@ -198,8 +201,25 @@ Java_com_luopan_ffmpeg_MainActivity_avFormatOpenInput(JNIEnv *env, jobject thiz,
         }
         if (cc == vc) {
             frameCount++; // 视频数据每解码成功一次，自加一次
+            vctx = sws_getCachedContext(vctx, frame->width, frame->height,
+                                        static_cast<AVPixelFormat>(frame->format),
+                                        outWidth, outHeight, AV_PIX_FMT_RGBA, SWS_FAST_BILINEAR, 0,
+                                        0, 0); // 解码成功以后获取这个格式
+            if (!vctx) {
+                LOGD("sws_getCachedContext is failed.");
+            } else {
+                uint8_t *data[AV_NUM_DATA_POINTERS] = {0};
+                data[0] = reinterpret_cast<uint8_t *>(rgb);
+                int lines[AV_NUM_DATA_POINTERS] = {0};
+                lines[0] = outHeight * 4;
+                int h = sws_scale(vctx, frame->data, frame->linesize, 0, frame->height, data,
+                                  lines);
+                LOGD("sws_scale h = %d.", h);
+            }
         }
     }
+
+    delete rgb;
 
     // 关闭上下文
     avformat_close_input(&ic);
