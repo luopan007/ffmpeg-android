@@ -18,6 +18,7 @@ extern "C" {
 #include <libavutil/frame.h>
 #include <libavcodec/jni.h> // 硬解码的必须的头文件
 #include <libswscale/swscale.h> // 像素格式转换的头文件
+#include <libswresample/swresample.h> // 音频数据重采样的头文件
 }
 
 extern "C"
@@ -167,6 +168,19 @@ Java_com_luopan_ffmpeg_MainActivity_avFormatOpenInput(JNIEnv *env, jobject thiz,
     int outHeight = 720;
     char *rgb = new char[1920 * 1080 * 4];
 
+    // 初始化音频数据重采样
+    SwrContext *actx = swr_alloc();
+    actx = swr_alloc_set_opts(actx, av_get_default_channel_layout(2), AV_SAMPLE_FMT_S16,
+                              ac->sample_rate, av_get_default_channel_layout(ac->channels),
+                              ac->sample_fmt, ac->sample_rate, 0, 0);
+    char *pcm = new char[48000 * 4 * 2];
+    ret = swr_init(actx);
+    if (ret != 0) {
+        LOGW("swr_init failed.");
+    } else {
+        LOGI("swr_init success.");
+    }
+
     long long start = getNowTimeMs(); // 获取当前时间
     int frameCount = 0; // 当前帧数
     for (;;) {
@@ -202,24 +216,33 @@ Java_com_luopan_ffmpeg_MainActivity_avFormatOpenInput(JNIEnv *env, jobject thiz,
         if (cc == vc) {
             frameCount++; // 视频数据每解码成功一次，自加一次
             vctx = sws_getCachedContext(vctx, frame->width, frame->height,
-                                        static_cast<AVPixelFormat>(frame->format),
+                                        (AVPixelFormat) (frame->format),
                                         outWidth, outHeight, AV_PIX_FMT_RGBA, SWS_FAST_BILINEAR, 0,
                                         0, 0); // 解码成功以后获取这个格式
             if (!vctx) {
                 LOGD("sws_getCachedContext is failed.");
             } else {
                 uint8_t *data[AV_NUM_DATA_POINTERS] = {0};
-                data[0] = reinterpret_cast<uint8_t *>(rgb);
+                data[0] = (uint8_t *) (rgb);
                 int lines[AV_NUM_DATA_POINTERS] = {0};
                 lines[0] = outHeight * 4;
                 int h = sws_scale(vctx, frame->data, frame->linesize, 0, frame->height, data,
                                   lines);
                 LOGD("sws_scale h = %d.", h);
             }
+        } else {
+            uint8_t *out[2] = {0};
+            out[0] = (uint8_t *) (pcm);
+            // 音频重采样的上下文
+            int len = swr_convert(actx, out, frame->nb_samples,
+                                  (const uint8_t **) (frame->data),
+                                  frame->nb_samples);
+            LOGI("swr_convert len = %d.", len);
         }
     }
 
     delete rgb;
+    delete pcm;
 
     // 关闭上下文
     avformat_close_input(&ic);
