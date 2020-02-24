@@ -215,8 +215,8 @@ Java_com_luopan_ffmpeg_XPlay_open(JNIEnv *env, jobject thiz, jstring path, jobje
     AVCodecContext *ac = avcodec_alloc_context3(aCodec); // 创建音频解码器内存空间
     avcodec_parameters_to_context(vc, ic->streams[videoStream]->codecpar); // 把视频参数赋值给视频解码器
     avcodec_parameters_to_context(ac, ic->streams[audioStream]->codecpar); // 把音频参数赋值给音频解码器
-    vc->thread_count = 8; // 视频解码采用单线程，改成8线程测试解码性能
-    ac->thread_count = 8; // 音频解码采用单线程，改成8线程测试解码性能
+    vc->thread_count = 4; // 视频解码采用单线程，改成4线程测试解码性能
+    ac->thread_count = 4; // 音频解码采用单线程，改成4线程测试解码性能
     ret = avcodec_open2(vc, 0, 0); // 打开视频解码器
     if (ret != 0) {
         LOGW("视频解码器打开失败。");
@@ -234,9 +234,9 @@ Java_com_luopan_ffmpeg_XPlay_open(JNIEnv *env, jobject thiz, jstring path, jobje
 
     // 初始化像素转换的上下文对象
     SwsContext *vctx = NULL;
-    int outWidth = 1280;
-    int outHeight = 720;
-    char *rgb = new char[1920 * 1080 * 4];
+    int outWidth = 1920;
+    int outHeight = 1080;
+    char *rgb = new char[outWidth * outHeight * 4];
 
     // 初始化音频数据重采样
     SwrContext *actx = swr_alloc();
@@ -252,14 +252,15 @@ Java_com_luopan_ffmpeg_XPlay_open(JNIEnv *env, jobject thiz, jstring path, jobje
     }
 
     // 显示窗口初始化
-    ANativeWindow *nwin = ANativeWindow_fromSurface(env, surface);
-    ANativeWindow_setBuffersGeometry(nwin, outWidth, outHeight, WINDOW_FORMAT_RGBA_8888);
-    ANativeWindow_Buffer wBuf;
+    ANativeWindow *nwin = ANativeWindow_fromSurface(env, surface); // 通过surface获取得到窗口
+    ANativeWindow_setBuffersGeometry(nwin, outWidth, outHeight,
+                                     WINDOW_FORMAT_RGBA_8888); // 设置窗口的尺寸和格式
+    ANativeWindow_Buffer wBuf; // 创建窗口缓存
 
     for (;;) {
         ret = av_read_frame(ic, pkt);
         if (ret != 0) {
-            int seekPosition = 0;
+            int seekPosition = 0; // 从头开始
             av_seek_frame(ic, videoStream, seekPosition, AVSEEK_FLAG_BACKWARD | AVSEEK_FLAG_FRAME);
             continue;
         }
@@ -287,14 +288,17 @@ Java_com_luopan_ffmpeg_XPlay_open(JNIEnv *env, jobject thiz, jstring path, jobje
                 uint8_t *data[AV_NUM_DATA_POINTERS] = {0};
                 data[0] = (uint8_t *) (rgb);
                 int lines[AV_NUM_DATA_POINTERS] = {0};
-                lines[0] = outHeight * 4;
-                int h = sws_scale(vctx, frame->data, frame->linesize, 0, frame->height, data,
-                                  lines);
+                lines[0] = outWidth * 4;
+                int h = sws_scale(vctx,
+                                  (const uint8_t **) frame->data,
+                                  frame->linesize, 0,
+                                  frame->height,
+                                  data, lines);
                 if (h > 0) {
-                    ANativeWindow_lock(nwin, &wBuf, 0); // 锁住窗口
-                    uint8_t *dst = (uint8_t *) (wBuf.bits);
+                    ANativeWindow_lock(nwin, &wBuf, 0); // 锁住窗口及其缓存
+                    uint8_t *dst = (uint8_t *) (wBuf.bits); // 取出窗口的缓存的数据地址
                     memcpy(dst, rgb, outWidth * outHeight * 4); // 拷贝数据从rgb到dst
-                    ANativeWindow_unlockAndPost(nwin); // 解锁窗口
+                    ANativeWindow_unlockAndPost(nwin); // 解锁窗口，并通知
                 }
             }
         } else {
