@@ -3,6 +3,8 @@
 #include <android/log.h>
 #include <android/native_window.h> // Android NDK绘制GLSurfaceView
 #include <android/native_window_jni.h>
+#include <SLES/OpenSLES.h> // 音频数据播放头文件
+#include <SLES/OpenSLES_Android.h>
 
 // 定义打印的宏
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO,"testffmepg", __VA_ARGS__);
@@ -54,6 +56,25 @@ long long getNowTimeMs() {
     return millisecond;
 }
 
+static SLObjectItf engineSL = NULL;
+
+/**
+ * 创建引擎
+ *
+ * @return 音频引擎
+ */
+SLEngineItf CreateSL() {
+    SLresult re;
+    SLEngineItf en;
+    re = slCreateEngine(&engineSL, 0, 0, 0, 0, 0);
+    if (re != SL_RESULT_SUCCESS) return NULL;
+    re = (*engineSL)->Realize(engineSL, SL_BOOLEAN_FALSE);
+    if (re != SL_RESULT_SUCCESS) return NULL;
+    re = (*engineSL)->GetInterface(engineSL, SL_IID_ENGINE, &en);
+    if (re != SL_RESULT_SUCCESS) return NULL;
+    return en;
+};
+
 
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_luopan_ffmpeg_MainActivity_stringFromJNI(
@@ -89,102 +110,6 @@ Java_com_luopan_ffmpeg_MainActivity_avFormatOpenInput(JNIEnv *env, jobject thiz,
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_luopan_ffmpeg_MainActivity_hardDecode(JNIEnv *env, jobject thiz, jstring path) {
-    const char *fPath = env->GetStringUTFChars(path, 0);
-    AVFormatContext *ic = NULL;
-    int ret = avformat_open_input(&ic, fPath, 0, 0);
-    if (ret != 0) {
-        LOGW("avformat_open_input %s failed!", av_err2str(ret));
-        return;
-    }
-
-    // 对于部门没有头部信息的码流，需要使用探测函数
-    ret = avformat_find_stream_info(ic, 0);
-    if (ret != 0) {
-        LOGW("avformat_find_stream_info %s failed!", av_err2str(ret));
-        return;
-    }
-
-    // 1、遍历寻找音视频流
-    int audioStream = av_find_best_stream(ic, AVMEDIA_TYPE_AUDIO, -1, -1, NULL, 0);
-    int videoStream = av_find_best_stream(ic, AVMEDIA_TYPE_VIDEO, -1, -1, NULL, 0);
-
-    // 2、打开音视频解码器
-    AVCodec *vCodec = avcodec_find_decoder_by_name("h264_mediacodec"); // 创建硬解码器
-    AVCodec *aCodec = avcodec_find_decoder(ic->streams[audioStream]->codecpar->codec_id); // 寻找音频解码器
-    if (!vCodec || !aCodec) {
-        LOGW("视频或音频解码器创建失败。");
-        return;
-    }
-    AVCodecContext *vc = avcodec_alloc_context3(vCodec); // 创建视频解码器内存空间
-    AVCodecContext *ac = avcodec_alloc_context3(aCodec); // 创建音频解码器内存空间
-    avcodec_parameters_to_context(vc, ic->streams[videoStream]->codecpar); // 把视频参数赋值给视频解码器
-    avcodec_parameters_to_context(ac, ic->streams[audioStream]->codecpar); // 把音频参数赋值给音频解码器
-    ret = avcodec_open2(vc, 0, 0); // 打开视频解码器
-    if (ret != 0) {
-        LOGW("视频解码器打开失败。");
-        return;
-    }
-    ret = avcodec_open2(ac, 0, 0); // 打开音频解码器
-    if (ret != 0) {
-        LOGW("音频解码器打开失败。");
-        return;
-    }
-
-    // 3、读取帧数据
-    AVPacket *pkt = av_packet_alloc(); // 分配用来保存解码前的帧数据的内存空间
-    AVFrame *frame = av_frame_alloc(); // 分配用来保存解码后的帧数据的内存空间
-    long long start = getNowTimeMs(); // 获取当前时间
-    int frameCount = 0; // 当前帧数
-    for (;;) {
-        if (getNowTimeMs() - start >= 3000) {
-            LOGI("now fps = %d", frameCount / 3); // 计算解码器的实际解码帧率
-            start = getNowTimeMs();
-            frameCount = 0;
-        }
-        ret = av_read_frame(ic, pkt);
-        if (ret != 0) {
-            LOGW("读取文件打破结尾处,从头开始播放。");
-            int seekPosition = 0;
-            av_seek_frame(ic, videoStream, seekPosition, AVSEEK_FLAG_BACKWARD | AVSEEK_FLAG_FRAME);
-            continue;
-        }
-//        LOGW("stream = %d size =%d pts=%lld flag=%d",
-//             pkt->stream_index,
-//             pkt->size,
-//             pkt->pts,
-//             pkt->flags);
-
-        AVCodecContext *cc = vc;
-        if (pkt->stream_index == audioStream) {
-            cc = ac;
-        }
-        ret = avcodec_send_packet(cc, pkt); // 把视频数据送到解码缓冲线程
-        av_packet_unref(pkt); // 数据复制送完以后，可以将解码前的pkt数据进行清理
-        if (ret != 0) {
-            LOGW("送数据失败，直接进行下一次送数据: %s", av_err2str(ret
-            ));
-            continue;
-        }
-        ret = avcodec_receive_frame(cc, frame); // 读取解码后的帧数据
-        if (ret != 0) {
-            LOGW("接收数据失败，直接进行下一次接收数据。");
-            continue;
-        }
-        if (cc == vc) {
-            frameCount++; // 视频数据每解码成功一次，自加一次
-        }
-    }
-
-    // 关闭上下文
-    avformat_close_input(&ic);
-
-    // 释放字符串空间
-    env->ReleaseStringUTFChars(path, fPath);
-}
-
-extern "C"
-JNIEXPORT void JNICALL
 Java_com_luopan_ffmpeg_XPlay_open(JNIEnv *env, jobject thiz, jstring path, jobject surface) {
     const char *fPath = env->GetStringUTFChars(path, 0);
     AVFormatContext *ic = NULL;
@@ -211,6 +136,53 @@ Java_com_luopan_ffmpeg_XPlay_open(JNIEnv *env, jobject thiz, jstring path, jobje
         LOGW("视频或音频解码器创建失败。");
         return;
     }
+
+    // 创建音频解码引擎
+    SLEngineItf eng = CreateSL();
+    if (eng) {
+        LOGI("创建引擎成功");
+    } else {
+        LOGW("创建引擎失败");
+    }
+
+    // 创建混音器
+    SLresult re = 0;
+    SLObjectItf mix = NULL;
+    re = (*eng)->CreateOutputMix(eng, &mix, 0, 0, 0);
+    if (re != SL_RESULT_SUCCESS) {
+        LOGW("CreateOutputMix fail")
+    }
+    re = (*mix)->Realize(mix, SL_BOOLEAN_FALSE);
+    if (re != SL_RESULT_SUCCESS) {
+        LOGW("Realize fail");
+    }
+
+    SLDataLocator_OutputMix outputMix = {SL_DATALOCATOR_OUTPUTMIX, mix}; // 直接给结构体赋值
+    SLDataSink audioSink = {&outputMix, 0};
+
+    // 配置音频信息
+    SLDataLocator_AndroidSimpleBufferQueue que = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE,
+                                                  10}; //缓冲队列
+    SLDataFormat_PCM pcmData = {SL_DATAFORMAT_PCM, // 数据格式为PCM
+                            2, // 声道数
+                            SL_SAMPLINGRATE_44_1, // 采样率
+                            SL_PCMSAMPLEFORMAT_FIXED_16, // 位宽
+                            SL_PCMSAMPLEFORMAT_FIXED_16,
+                            SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT, // 前左和前右输出
+                            SL_BYTEORDER_LITTLEENDIAN // 字节序，小端
+    };
+    SLDataSource ds = {&que, &pcmData}; // 参数福给结构体，供播放器使用
+
+    // 创建播放器
+    SLObjectItf player = NULL;
+    re = (*eng)->CreateAudioPlayer(eng, &player, &ds, &audioSink, 0, 0, 0);
+    if (re != SL_RESULT_SUCCESS) {
+        LOGW("创建播放器失败");
+    } else {
+        LOGI("创建播放器成功");
+    }
+
+
     AVCodecContext *vc = avcodec_alloc_context3(vCodec); // 创建视频解码器内存空间
     AVCodecContext *ac = avcodec_alloc_context3(aCodec); // 创建音频解码器内存空间
     avcodec_parameters_to_context(vc, ic->streams[videoStream]->codecpar); // 把视频参数赋值给视频解码器

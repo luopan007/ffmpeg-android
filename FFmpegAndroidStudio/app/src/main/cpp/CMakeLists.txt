@@ -50,6 +50,7 @@ find_library(
 target_link_libraries( # Specifies the target library.
         native-lib
         android # android的库需要编译进来
+        OpenSLES #android的音频播放框架依赖库
         avcodec
         avdevice
         avfilter

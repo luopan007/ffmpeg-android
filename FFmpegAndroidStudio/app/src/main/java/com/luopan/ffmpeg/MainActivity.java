@@ -41,7 +41,6 @@ public class MainActivity extends AppCompatActivity {
         avFormatNetworkInit();
         avCodecRegisterAll();
 //        avFormatOpenInput("/sdcard/DCIM/test.mp4");
-//        hardDecode("/sdcard/DCIM/test.mp4");
     }
 
     @Override
@@ -97,6 +96,4 @@ public class MainActivity extends AppCompatActivity {
     public native void avCodecRegisterAll();
 
     public native void avFormatOpenInput(String path);
-
-    public native void hardDecode(String path);
 }
