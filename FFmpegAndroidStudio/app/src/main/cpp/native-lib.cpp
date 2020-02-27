@@ -75,6 +75,33 @@ SLEngineItf CreateSL() {
     return en;
 };
 
+/**
+ * 回调函数
+ *
+ * @param bf
+ * @param context
+ */
+void PcmCall(SLAndroidSimpleBufferQueueItf bf, void *context) {
+    LOGI("PcmCall IN");
+    static FILE *fp = NULL;
+    static char *buf = NULL;
+    if (!buf) {
+        buf = new char[1024 * 1024];
+    }
+    if (!fp) {
+        fp = fopen("/sdcard/test.pcm", "rb");
+    }
+    if (!fp) {
+        LOGW("打开音频文件失败");
+        return;
+    }
+    if (feof(fp) == 0) { // 等于0，表示不再文件结尾
+        int len = fread(buf, 1, 1024, fp);
+        if (len > 0) {
+            (*bf)->Enqueue(bf, buf, len); // 发送音频数据
+        }
+    }
+}
 
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_luopan_ffmpeg_MainActivity_stringFromJNI(
@@ -164,23 +191,48 @@ Java_com_luopan_ffmpeg_XPlay_open(JNIEnv *env, jobject thiz, jstring path, jobje
     SLDataLocator_AndroidSimpleBufferQueue que = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE,
                                                   10}; //缓冲队列
     SLDataFormat_PCM pcmData = {SL_DATAFORMAT_PCM, // 数据格式为PCM
-                            2, // 声道数
-                            SL_SAMPLINGRATE_44_1, // 采样率
-                            SL_PCMSAMPLEFORMAT_FIXED_16, // 位宽
-                            SL_PCMSAMPLEFORMAT_FIXED_16,
-                            SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT, // 前左和前右输出
-                            SL_BYTEORDER_LITTLEENDIAN // 字节序，小端
+                                2, // 声道数
+                                SL_SAMPLINGRATE_44_1, // 采样率
+                                SL_PCMSAMPLEFORMAT_FIXED_16, // 位宽
+                                SL_PCMSAMPLEFORMAT_FIXED_16,
+                                SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT, // 前左和前右输出
+                                SL_BYTEORDER_LITTLEENDIAN // 字节序，小端
     };
     SLDataSource ds = {&que, &pcmData}; // 参数福给结构体，供播放器使用
 
     // 创建播放器
     SLObjectItf player = NULL;
-    re = (*eng)->CreateAudioPlayer(eng, &player, &ds, &audioSink, 0, 0, 0);
+    const SLInterfaceID ids[] = {SL_IID_BUFFERQUEUE};
+    const SLboolean req[] = {SL_BOOLEAN_TRUE};
+    re = (*eng)->CreateAudioPlayer(eng, &player, &ds, &audioSink,
+                                   sizeof(ids) / sizeof(SLInterfaceID), ids, req);
     if (re != SL_RESULT_SUCCESS) {
         LOGW("创建播放器失败");
     } else {
         LOGI("创建播放器成功");
     }
+
+    // 获取player接口
+    SLPlayItf iplayer;
+    (*player)->Realize(player, SL_BOOLEAN_FALSE);
+    re = (*player)->GetInterface(player, SL_IID_PLAY, &iplayer);
+    if (re != SL_RESULT_SUCCESS) {
+        LOGW("获取接口失败");
+    }
+
+    // 获取队列接口
+    SLAndroidSimpleBufferQueueItf pcmQue = NULL;
+    re = (*player)->GetInterface(player, SL_IID_BUFFERQUEUE, &pcmQue);
+    if (re != SL_RESULT_SUCCESS) {
+        LOGW("获取队列失败");
+    }
+
+    // 设置回调函数，播放队列函数空调用
+    (*pcmQue)->RegisterCallback(pcmQue, PcmCall, 0);
+    (*iplayer)->SetPlayState(iplayer, SL_PLAYSTATE_PLAYING); // 设置播放状态
+
+    // 启动队列
+    (*pcmQue)->Enqueue(pcmQue, "", 1);
 
 
     AVCodecContext *vc = avcodec_alloc_context3(vCodec); // 创建视频解码器内存空间
