@@ -36,11 +36,6 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
         verifyStoragePermissions(this);
-
-        avRegisterAll();
-        avFormatNetworkInit();
-        avCodecRegisterAll();
-//        avFormatOpenInput("/sdcard/DCIM/test.mp4");
     }
 
     @Override
@@ -88,12 +83,4 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public native String stringFromJNI();
-
-    public native void avRegisterAll();
-
-    public native void avFormatNetworkInit();
-
-    public native void avCodecRegisterAll();
-
-    public native void avFormatOpenInput(String path);
 }

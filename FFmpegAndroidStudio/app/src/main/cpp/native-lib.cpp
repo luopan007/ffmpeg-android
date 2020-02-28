@@ -103,6 +103,15 @@ void PcmCall(SLAndroidSimpleBufferQueueItf bf, void *context) {
     }
 }
 
+/**
+ * 初始化FFMpeg运行所需的换进
+ */
+void initFfmpeg() {
+    av_register_all();
+    avformat_network_init();
+    avcodec_register_all();
+}
+
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_luopan_ffmpeg_MainActivity_stringFromJNI(
         JNIEnv *env,
@@ -114,30 +123,8 @@ Java_com_luopan_ffmpeg_MainActivity_stringFromJNI(
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_luopan_ffmpeg_MainActivity_avRegisterAll(JNIEnv *env, jobject thiz) {
-    av_register_all();
-}
-
-extern "C"
-JNIEXPORT void JNICALL
-Java_com_luopan_ffmpeg_MainActivity_avFormatNetworkInit(JNIEnv *env, jobject thiz) {
-    avformat_network_init();
-}
-
-extern "C"
-JNIEXPORT void JNICALL
-Java_com_luopan_ffmpeg_MainActivity_avCodecRegisterAll(JNIEnv *env, jobject thiz) {
-    avcodec_register_all();
-}
-
-extern "C"
-JNIEXPORT void JNICALL
-Java_com_luopan_ffmpeg_MainActivity_avFormatOpenInput(JNIEnv *env, jobject thiz, jstring path) {
-}
-
-extern "C"
-JNIEXPORT void JNICALL
 Java_com_luopan_ffmpeg_XPlay_open(JNIEnv *env, jobject thiz, jstring path, jobject surface) {
+    initFfmpeg();
     const char *fPath = env->GetStringUTFChars(path, 0);
     AVFormatContext *ic = NULL;
     int ret = avformat_open_input(&ic, fPath, 0, 0);
