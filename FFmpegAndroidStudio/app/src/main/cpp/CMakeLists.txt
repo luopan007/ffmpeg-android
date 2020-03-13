@@ -49,8 +49,10 @@ find_library(
 # 把所有的库都链接到native-lib中去
 target_link_libraries( # Specifies the target library.
         native-lib
-        android # android的库需要编译进来
+        android  #android的库需要编译进来
         OpenSLES #android的音频播放框架依赖库
+        GLESv2 #android的OpenGL ES version 2
+        EGL #OpenGL ES与native window的适配器
         avcodec
         avdevice
         avfilter

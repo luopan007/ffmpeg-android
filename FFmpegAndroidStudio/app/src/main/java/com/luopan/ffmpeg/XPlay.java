@@ -22,8 +22,10 @@ public class XPlay extends GLSurfaceView implements Runnable, Callback {
 
     @Override
     public void run() {
-        // 1、打开视频
-        open("/sdcard/DCIM/test.mp4", getHolder().getSurface());
+        // 1、打开视频，显示RGB
+        // open("/sdcard/DCIM/test.mp4", getHolder().getSurface());
+        // 2、播放YUV视频文件
+        playYuv("/sdcard/out.yuv", getHolder().getSurface());
     }
 
     @Override
@@ -40,11 +42,18 @@ public class XPlay extends GLSurfaceView implements Runnable, Callback {
     }
 
     /**
-     * 打开视频
+     * 打开视频，显示RGB
      *
      * @param url     视频地址
      * @param surface 显示对象
      */
     public native void open(String url, Object surface);
 
+    /**
+     * 播放YUV视频文件
+     *
+     * @param path    视频地址
+     * @param surface 显示对象
+     */
+    public native void playYuv(String path, Object surface);
 }
