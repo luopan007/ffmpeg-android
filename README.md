@@ -12,3 +12,6 @@ NDK根目录，需要自行从Android官网下载。
 
 4、PREFIX是指定编译后的安装目录  
 
+5、ffmpeg生成yuv命令
+ffmpeg -i 720.mp4 -pix_fmt yuv420p -s 424x240 out.yuv
+
