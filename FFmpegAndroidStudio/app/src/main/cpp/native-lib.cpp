@@ -246,7 +246,6 @@ Java_com_luopan_ffmpeg_XPlay_open(JNIEnv *env, jobject thiz, jstring path, jobje
     // 启动队列
     (*pcmQue)->Enqueue(pcmQue, "", 1);
 
-
     AVCodecContext *vc = avcodec_alloc_context3(vCodec); // 创建视频解码器内存空间
     AVCodecContext *ac = avcodec_alloc_context3(aCodec); // 创建音频解码器内存空间
     avcodec_parameters_to_context(vc, ic->streams[videoStream]->codecpar); // 把视频参数赋值给视频解码器
