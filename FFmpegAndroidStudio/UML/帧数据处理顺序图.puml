@@ -1,0 +1,33 @@
+@startuml
+skinparam backgroundColor #EEEBDC
+skinparam handwritten true
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+skinparam sequenceParticipant underline
+
+entity IDemux
+
+entity IDecodeAudio
+
+entity IDecodeVideo
+
+entity IVideoView
+
+entity IResample
+
+entity IAudioPlay
+
+IDemux --> IDemux : 读取一帧数据
+IDemux --> IDecodeVideo : NotifyXData视频帧数据 线程安全
+IDecodeVideo --> IDecodeVideo : 视频帧数据放入解码队列
+IDecodeVideo --> IVideoView : Notify线程中解码后的XData数据 数据量大 数据不可复制 线程不安全
+IVideoView --> IVideoView : 使用Shader显示XdataYUV数据
+
+IDemux --> IDecodeAudio : NotifyXData音频帧数据线程安全
+IDecodeAudio --> IDecodeAudio : 音频数据放入解码队列
+IDecodeAudio --> IResample : Notify线程中解码后的XData数据 数据量小 数据可复制 线程安全
+IResample --> IResample : 重采样后发送XData音频数据 数据量小 数据可复制 线程安全
+IResample --> IAudioPlay : 数据写入播放的缓冲队列
+
+@enduml
