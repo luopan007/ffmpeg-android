@@ -1,0 +1,117 @@
+@startuml
+
+skinparam class {
+	BackgroundColor PaleGreen
+	ArrowColor SeaGreen
+	BorderColor SpringGreen
+}
+skinparam stereotypeCBackgroundColor YellowGreen
+
+interface Client
+note right: 用户使用Client代表，既可以调用Proxy，也可以调用Player
+
+interface IPlayProxy
+
+Client -left-->IPlayProxy
+
+IPlayProxy "0..*" --> "0..1" IPlayer
+
+interface IPlayer {
++ open() : int
++ play() : int
+}
+
+Client -->IPlayer
+
+interface IDemux {
++update() : int
++open()   : int
+}
+note bottom: 解封装
+
+IDemux "0..*"<-down-o "0..1" IPlayer
+
+interface IDecode {
++update() : int
++open()   : int
+}
+note bottom: 解码
+
+IDecode "0..*"<-down-o "0..1" IPlayer
+
+interface IResample {
++update() : int
++open()   : int
+}
+note bottom: 音频重采样
+
+IResample "0..*"<-down-o "0..1" IPlayer
+
+interface IAudioPlay {
++update() : int
++open()   : int
+}
+note bottom: 音频输出
+
+IAudioPlay "0..*"<-down-o "0..1" IPlayer
+
+interface IVideoView {
++update() : int
++open()   : int
+}
+note bottom: 视频输出
+
+IVideoView "0..*"<-down-o "0..1" IPlayer
+
+interface FFDemux {
++open()   : int
+}
+note bottom: FFMPEG解封装调用
+
+IDemux <|--down-  FFDemux
+
+interface FFDecode
+note bottom: FFMPEG解码调用
+
+IDecode <|--down-  FFDecode
+
+interface FFResample {
++open()   : int
+}
+note bottom: FFMPEG重采样调用
+
+IResample <|--down-  FFResample
+
+interface CLAudioPlay {
++open()   : int
+}
+note bottom: OpenSLES音频输出
+
+IAudioPlay <|--down- CLAudioPlay
+
+interface GLVideoView {
++open()   : int
+}
+note bottom: OpenGLES视频输出
+
+IVideoView <|--down-  GLVideoView
+
+interface FFPlayerBuilder
+
+FFDemux <.. FFPlayerBuilder
+
+FFDecode <.. FFPlayerBuilder
+
+FFResample <.. FFPlayerBuilder
+
+CLAudioPlay <.. FFPlayerBuilder
+
+GLVideoView <.. FFPlayerBuilder
+
+interface IPlayerBuilder
+
+FFPlayerBuilder ..|> IPlayerBuilder
+
+
+
+@enduml
