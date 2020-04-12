@@ -26,6 +26,11 @@ public:
      * @return The frame data
      */
     virtual XData Read() = 0;
+
+    /**
+     * File duration in millisecond
+     */
+    int total;
 };
 
 

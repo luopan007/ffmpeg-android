@@ -8,9 +8,13 @@
 
 #include "IDemux.h"
 
+struct AVFormatContext;
+
 class FFDemux : public IDemux {
 public:
-    /**
+    FFDemux();
+
+/**
      * Open the video or audio file or stream url, such as: rmtp http rtsp
      *
      * @param url the target url
@@ -26,7 +30,9 @@ public:
      * @return The frame data
      */
     virtual XData Read();
-};
 
+private:
+    AVFormatContext *ic = 0;
+};
 
 #endif //FFMPEG_FFDEMUX_H
