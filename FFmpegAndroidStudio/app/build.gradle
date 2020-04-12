@@ -1,13 +1,17 @@
 apply plugin: 'com.android.application'
 
+def configinfo = rootProject.ext.android
+def library = rootProject.ext.dependencies
+
 android {
-    compileSdkVersion 28
+    compileSdkVersion configinfo.compileSdkVersion
+    buildToolsVersion configinfo.buildToolsVersion
     defaultConfig {
         applicationId "com.luopan.ffmpeg"
-        minSdkVersion 21
-        targetSdkVersion 28
-        versionCode 1
-        versionName "1.0"
+        minSdkVersion configinfo.minSdkVersion
+        targetSdkVersion configinfo.targetSdkVersion
+        versionCode configinfo.versionCode
+        versionName configinfo.versionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
@@ -33,9 +37,9 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'androidx.appcompat:appcompat:1.1.0'
-    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+    implementation library.androidxAppcompat
+    implementation library.androidxConstraint
+    testImplementation library.androidjunit
+    androidTestImplementation library.androidjunitTest
+    androidTestImplementation library.androidespresso
 }
