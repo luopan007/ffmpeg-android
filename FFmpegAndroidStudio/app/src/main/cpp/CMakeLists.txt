@@ -23,6 +23,7 @@ add_library(
         ${CMAKE_SOURCE_DIR}/XData.cpp
         ${CMAKE_SOURCE_DIR}/XLog.cpp
         ${CMAKE_SOURCE_DIR}/XThread.cpp
+        ${CMAKE_SOURCE_DIR}/IObserver.cpp
 )
 
 add_library(avcodec SHARED IMPORTED)

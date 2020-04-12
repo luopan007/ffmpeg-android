@@ -8,8 +8,9 @@
 
 #include "XData.h"
 #include "XThread.h"
+#include "IObserver.h"
 
-class IDemux : public XThread {
+class IDemux : public IObserver {
 public:
     /**
      * Open the video or audio file or stream url, such as: rmtp http rtsp
