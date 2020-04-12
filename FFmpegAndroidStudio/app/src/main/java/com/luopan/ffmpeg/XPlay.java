@@ -20,7 +20,8 @@ public class XPlay extends GLSurfaceView implements Runnable, Callback {
 
     @Override
     public void run() {
-        // TODO
+        // 1、打开视频，显示RGB
+        open("/sdcard/1080.mp4", getHolder().getSurface());
     }
 
     @Override
@@ -33,4 +34,12 @@ public class XPlay extends GLSurfaceView implements Runnable, Callback {
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {}
+
+    /**
+     * 打开视频，显示RGB
+     *
+     * @param url 视频地址
+     * @param surface 显示对象
+     */
+    public native void open(String url, Object surface);
 }

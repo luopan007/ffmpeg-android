@@ -26,3 +26,11 @@ extern "C" {
 #include <libswresample/swresample.h> // 音频数据重采样的头文件
 }
 
+#include "FFDemux.h"
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_luopan_ffmpeg_XPlay_open(JNIEnv *env, jobject thiz, jstring path, jobject surface) {
+    IDemux *demux = new FFDemux();
+    demux->Open("/sdcard/1080.mp4");
+}
