@@ -27,6 +27,7 @@ extern "C" {
 }
 
 #include "FFDemux.h"
+#include "XLog.h"
 
 extern "C"
 JNIEXPORT void JNICALL
@@ -35,5 +36,6 @@ Java_com_luopan_ffmpeg_XPlay_open(JNIEnv *env, jobject thiz, jstring path, jobje
     demux->Open("/sdcard/1080.mp4");
     for (;;) {
         XData data = demux->Read();
+        XLOGI("Read data size is %d", data.size);
     }
 }
