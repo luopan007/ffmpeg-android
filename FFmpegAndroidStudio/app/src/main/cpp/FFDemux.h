@@ -23,6 +23,13 @@ public:
     virtual bool Open(const char *url);
 
     /**
+     * Get the video parameter for video decode
+     *
+     * @return video parameter
+     */
+    virtual XParameter GetVideoPara();
+
+    /**
      * Read one frame data
      * <p>
      * NOTE: The return data is cleared or not by the user decision.

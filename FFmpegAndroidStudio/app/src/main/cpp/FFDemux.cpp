@@ -56,6 +56,7 @@ bool FFDemux::Open(const char *url) {
 
 XData FFDemux::Read() {
     if (!ic) {
+        XLOGW("Read ic is NULL");
         return XData();
     }
     XData data;
@@ -68,4 +69,20 @@ XData FFDemux::Read() {
     data.data = reinterpret_cast<unsigned char *>(pkt);
     data.size = pkt->size;
     return data;
+}
+
+XParameter FFDemux::GetVideoPara() {
+    if (!ic) {
+        XLOGW("GetVideoPara ic is NULL");
+        return XParameter();
+    }
+    int ret = av_find_best_stream(ic, AVMEDIA_TYPE_VIDEO, -1, -1, 0, 0);
+    if (ret < SUCCESS) {
+        XLOGW("av_find_best_stream of video failed");
+        return XParameter();
+    }
+    XLOGW("GetVideoPara ret = %d", ret);
+    XParameter para;
+    para.para = ic->streams[ret]->codecpar;
+    return para;
 }

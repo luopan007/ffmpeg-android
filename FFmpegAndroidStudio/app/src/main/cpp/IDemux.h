@@ -9,6 +9,7 @@
 #include "XData.h"
 #include "XThread.h"
 #include "IObserver.h"
+#include "XParameter.h"
 
 class IDemux : public IObserver {
 public:
@@ -19,6 +20,13 @@ public:
      * @return success or fail
      */
     virtual bool Open(const char *url) = 0;
+
+    /**
+     * Get the video parameter for video decode
+     *
+     * @return video parameter
+     */
+    virtual XParameter GetVideoPara() = 0;
 
     /**
      * Read one frame data
