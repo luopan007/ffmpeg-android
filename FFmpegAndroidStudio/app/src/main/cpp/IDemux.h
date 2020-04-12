@@ -7,8 +7,9 @@
 
 
 #include "XData.h"
+#include "XThread.h"
 
-class IDemux {
+class IDemux : public XThread {
 public:
     /**
      * Open the video or audio file or stream url, such as: rmtp http rtsp
@@ -31,6 +32,12 @@ public:
      * File duration in millisecond
      */
     int total;
+
+protected:
+    /**
+     * Extends from XThread
+     */
+    virtual void Main();
 };
 
 

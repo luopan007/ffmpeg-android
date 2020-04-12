@@ -5,6 +5,7 @@
 #ifndef FFMPEG_XTHREAD_H
 #define FFMPEG_XTHREAD_H
 
+void XSleep(int mis);
 
 /**
  * c++11 Thread Library
@@ -24,7 +25,13 @@ public:
     /**
      * Main function
      */
-    virtual void Main();;
+    virtual void Main();
+
+protected:
+    bool isExit = false;
+    bool isRunning = false;
+private:
+    void ThreadMain();
 };
 
 #endif //FFMPEG_XTHREAD_H
