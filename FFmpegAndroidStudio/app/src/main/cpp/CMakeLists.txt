@@ -10,11 +10,6 @@ include_directories(
         ${CMAKE_SOURCE_DIR}/include/
         ${CMAKE_SOURCE_DIR}/
 )
-# 定义全局 my_source_path 变量
-file(GLOB my_source_path
-        ${CMAKE_SOURCE_DIR}/*.cpp
-        ${CMAKE_SOURCE_DIR}/*.c
-        )
 
 add_library(
         # 库名字
@@ -22,7 +17,13 @@ add_library(
         # 共享库
         SHARED
         # 库文件原始文件
-        ${my_source_path})
+        ${CMAKE_SOURCE_DIR}/native-lib.cpp
+        ${CMAKE_SOURCE_DIR}/IDemux.cpp
+        ${CMAKE_SOURCE_DIR}/FFDemux.cpp
+        ${CMAKE_SOURCE_DIR}/XData.cpp
+        ${CMAKE_SOURCE_DIR}/XLog.cpp
+        ${CMAKE_SOURCE_DIR}/XThread.cpp
+)
 
 add_library(avcodec SHARED IMPORTED)
 add_library(avdevice SHARED IMPORTED)
