@@ -29,6 +29,13 @@ public:
     virtual XParameter GetVideoPara() = 0;
 
     /**
+     * Get the audio parameter for audio decode
+     *
+     * @return audio parameter
+     */
+    virtual XParameter GetAudioPara() = 0;
+
+    /**
      * Read one frame data
      * <p>
      * NOTE: The return data is cleared or not by the user decision.

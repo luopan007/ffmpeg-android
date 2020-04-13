@@ -30,6 +30,13 @@ public:
     virtual XParameter GetVideoPara();
 
     /**
+     * Get the audio parameter for audio decode
+     *
+     * @return audio parameter
+     */
+    virtual XParameter GetAudioPara();
+
+    /**
      * Read one frame data
      * <p>
      * NOTE: The return data is cleared or not by the user decision.
@@ -40,6 +47,10 @@ public:
 
 private:
     AVFormatContext *ic = 0;
+
+    int audioStream = 1;
+
+    int videoStream = 0;
 };
 
 #endif //FFMPEG_FFDEMUX_H

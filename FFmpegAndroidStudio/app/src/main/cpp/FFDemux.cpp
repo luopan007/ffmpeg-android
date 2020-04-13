@@ -51,6 +51,11 @@ bool FFDemux::Open(const char *url) {
     }
     this->total = static_cast<int>(ic->duration / (AV_TIME_BASE / ONE_THOUSAND));
     XLOGI("total = %d ms", this->total);
+
+    // Initial audio and video stream index.
+
+    GetVideoPara();
+    GetAudioPara();
     return true;
 }
 
@@ -68,6 +73,15 @@ XData FFDemux::Read() {
     }
     data.data = reinterpret_cast<unsigned char *>(pkt);
     data.size = pkt->size;
+
+    if (pkt->stream_index == audioStream) {
+        data.isAudio = true;
+    } else if (pkt->stream_index == videoStream) {
+        data.isAudio = false;
+    } else {
+        XLOGW("Invalid type");
+        av_packet_free(&pkt);
+    }
     return data;
 }
 
@@ -84,5 +98,23 @@ XParameter FFDemux::GetVideoPara() {
     XLOGW("GetVideoPara ret = %d", ret);
     XParameter para;
     para.para = ic->streams[ret]->codecpar;
+    videoStream = ret;
+    return para;
+}
+
+XParameter FFDemux::GetAudioPara() {
+    if (!ic) {
+        XLOGW("GetAudioPara ic is NULL");
+        return XParameter();
+    }
+    int ret = av_find_best_stream(ic, AVMEDIA_TYPE_AUDIO, -1, -1, 0, 0);
+    if (ret < SUCCESS) {
+        XLOGW("av_find_best_stream of audio failed");
+        return XParameter();
+    }
+    XLOGW("GetAudioPara ret = %d", ret);
+    XParameter para;
+    para.para = ic->streams[ret]->codecpar;
+    audioStream = ret;
     return para;
 }
