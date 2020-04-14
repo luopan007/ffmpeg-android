@@ -27,6 +27,11 @@ add_library(
         ${CMAKE_SOURCE_DIR}/IDecode.cpp
         ${CMAKE_SOURCE_DIR}/FFDecode.cpp
         ${CMAKE_SOURCE_DIR}/XParameter.cpp
+        ${CMAKE_SOURCE_DIR}/IVideoView.cpp
+        ${CMAKE_SOURCE_DIR}/GLVideoView.cpp
+        ${CMAKE_SOURCE_DIR}/XTexture.cpp
+        ${CMAKE_SOURCE_DIR}/XEGL.cpp
+        ${CMAKE_SOURCE_DIR}/XShader.cpp
 )
 
 add_library(avcodec SHARED IMPORTED)

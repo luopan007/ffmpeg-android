@@ -1,28 +1,19 @@
 #include <jni.h>
 #include <string>
+#include <android/native_window_jni.h> // android native 窗口
 
 #include "IDemux.h"
 #include "XLog.h"
 #include "IDecode.h"
 #include "FFDemux.h"
 #include "FFDecode.h"
+#include "XEGL.h"
 
-/**
- * 测试观察者模式----测试代码
- */
-class TestObs : public IObserver {
-public:
-    void Update(XData data) {
-//        XLOGI("TestObs-->Update-->data size[%d]", data.size);
-    }
-};
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_luopan_ffmpeg_XPlay_open(JNIEnv *env, jobject thiz, jstring path, jobject surface) {
-    TestObs *obs = new TestObs();
     IDemux *demux = new FFDemux();
-//    demux->AddObserver(obs);
     demux->Open("/sdcard/1080.mp4");
 
     IDecode *vdecode = new FFDecode();
@@ -36,4 +27,12 @@ Java_com_luopan_ffmpeg_XPlay_open(JNIEnv *env, jobject thiz, jstring path, jobje
     demux->Start();
     vdecode->Start();
     adecode->Start();
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_luopan_ffmpeg_XPlay_InitView(JNIEnv *env, jobject thiz, jobject surface) {
+    // 从Java获取窗口
+    ANativeWindow *nativeWindow = ANativeWindow_fromSurface(env, surface);
+    XEGL::Get()->Init(nativeWindow);
 }
