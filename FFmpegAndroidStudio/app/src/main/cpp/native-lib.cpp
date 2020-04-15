@@ -8,6 +8,7 @@
 #include "FFDemux.h"
 #include "FFDecode.h"
 #include "XEGL.h"
+#include "XShader.h"
 
 
 extern "C"
@@ -35,4 +36,6 @@ Java_com_luopan_ffmpeg_XPlay_InitView(JNIEnv *env, jobject thiz, jobject surface
     // 从Java获取窗口
     ANativeWindow *nativeWindow = ANativeWindow_fromSurface(env, surface);
     XEGL::Get()->Init(nativeWindow);
+    XShader shader;
+    shader.Init();
 }
