@@ -45,7 +45,9 @@ XData FFResample::Resample(XData indata) {
     XData out;
     int outsize =
             outChannels * frame->nb_samples * av_get_bytes_per_sample((AVSampleFormat) outFormat);
-    if (outsize <= 0)return XData();
+    if (outsize <= 0) {
+        return XData();
+    }
     out.Alloc(outsize);
     uint8_t *outArr[2] = {0};
     outArr[0] = out.data;
@@ -55,6 +57,6 @@ XData FFResample::Resample(XData indata) {
         out.Drop();
         return XData();
     }
-    XLOGE("swr_convert success = %d", len);
+    XLOGI("swr_convert success = %d", len);
     return out;
 }
