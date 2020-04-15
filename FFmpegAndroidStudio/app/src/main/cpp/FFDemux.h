@@ -12,9 +12,7 @@ struct AVFormatContext;
 
 class FFDemux : public IDemux {
 public:
-    FFDemux();
-
-/**
+    /**
      * Open the video or audio file or stream url, such as: rmtp http rtsp
      *
      * @param url the target url
@@ -44,6 +42,8 @@ public:
      * @return The frame data
      */
     virtual XData Read();
+
+    FFDemux();
 
 private:
     AVFormatContext *ic = 0;

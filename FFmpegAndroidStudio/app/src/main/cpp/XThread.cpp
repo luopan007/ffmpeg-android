@@ -43,6 +43,3 @@ void XThread::Stop() {
     }
     XLOGI("Stop XThread time out");
 }
-
-void XThread::Main() {
-}

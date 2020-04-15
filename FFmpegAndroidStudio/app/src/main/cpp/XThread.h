@@ -25,7 +25,7 @@ public:
     /**
      * Main function
      */
-    virtual void Main();
+    virtual void Main() {}
 
 protected:
     bool isExit = false;

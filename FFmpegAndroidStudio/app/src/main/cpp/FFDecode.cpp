@@ -83,6 +83,8 @@ XData FFDecode::RecvFrame() {
     data.data = reinterpret_cast<unsigned char *>(frame);
     if (codec->codec_type == AVMEDIA_TYPE_VIDEO) {
         data.size = (frame->linesize[0] + frame->linesize[1] + frame->linesize[2]) * frame->height;
+        data.width = frame->width;
+        data.height = frame->height;
     } else if (codec->codec_type == AVMEDIA_TYPE_AUDIO) {
         // 计算方法：样本大小 * 单通道样本数 * 通道数
         data.size = av_get_bytes_per_sample(static_cast<AVSampleFormat>(frame->format)) *
@@ -90,5 +92,6 @@ XData FFDecode::RecvFrame() {
     } else {
         XLOGW("invalid type");
     }
+    memcpy(data.datas, frame->data, sizeof(data.datas));
     return data;
 }

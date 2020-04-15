@@ -17,6 +17,11 @@ public:
     virtual bool Init(void *win) = 0;
 
     /**
+     * 绘制
+     */
+    virtual void Draw() = 0;
+
+    /**
      * 单例模式获取EGL对象
      *
      * @return

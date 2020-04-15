@@ -15,23 +15,6 @@ const int BUFFER_LENGTH = 1024;
 
 const int ONE_THOUSAND = 1000;
 
-/**
- * Constructor
- */
-FFDemux::FFDemux() {
-    static bool isFirst = true;
-    if (isFirst) {
-        isFirst = false;
-        // 1. register all demux library
-        av_register_all();
-        // 2. register all decode library
-        avcodec_register_all();
-        // 3. register network library
-        avformat_network_init();
-        XLOGI("register ffmpeg library success.")
-    }
-}
-
 bool FFDemux::Open(const char *url) {
     int ret = avformat_open_input(&ic, url, 0, 0);
     if (ret != SUCCESS) {
@@ -57,32 +40,6 @@ bool FFDemux::Open(const char *url) {
     GetVideoPara();
     GetAudioPara();
     return true;
-}
-
-XData FFDemux::Read() {
-    if (!ic) {
-        XLOGW("Read ic is NULL");
-        return XData();
-    }
-    XData data;
-    AVPacket *pkt = av_packet_alloc();
-    int ret = av_read_frame(ic, pkt);
-    if (ret != SUCCESS) {
-        av_packet_free(&pkt);
-        return XData();
-    }
-    data.data = reinterpret_cast<unsigned char *>(pkt);
-    data.size = pkt->size;
-
-    if (pkt->stream_index == audioStream) {
-        data.isAudio = true;
-    } else if (pkt->stream_index == videoStream) {
-        data.isAudio = false;
-    } else {
-        XLOGW("Invalid type");
-        av_packet_free(&pkt);
-    }
-    return data;
 }
 
 XParameter FFDemux::GetVideoPara() {
@@ -117,4 +74,47 @@ XParameter FFDemux::GetAudioPara() {
     para.para = ic->streams[ret]->codecpar;
     audioStream = ret;
     return para;
+}
+
+XData FFDemux::Read() {
+    if (!ic) {
+        XLOGW("Read ic is NULL");
+        return XData();
+    }
+    XData data;
+    AVPacket *pkt = av_packet_alloc();
+    int ret = av_read_frame(ic, pkt);
+    if (ret != SUCCESS) {
+        av_packet_free(&pkt);
+        return XData();
+    }
+    data.data = reinterpret_cast<unsigned char *>(pkt);
+    data.size = pkt->size;
+
+    if (pkt->stream_index == audioStream) {
+        data.isAudio = true;
+    } else if (pkt->stream_index == videoStream) {
+        data.isAudio = false;
+    } else {
+        XLOGW("Invalid type");
+        av_packet_free(&pkt);
+    }
+    return data;
+}
+
+/**
+ * Constructor
+ */
+FFDemux::FFDemux() {
+    static bool isFirst = true;
+    if (isFirst) {
+        isFirst = false;
+        // 1. register all demux library
+        av_register_all();
+        // 2. register all decode library
+        avcodec_register_all();
+        // 3. register network library
+        avformat_network_init();
+        XLOGI("register ffmpeg library success.")
+    }
 }

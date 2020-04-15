@@ -15,6 +15,7 @@ struct AVFrame;
  * 解码接口，支持硬解码
  */
 class FFDecode : public IDecode {
+public:
     /**
      * 打开解码器参数
      *

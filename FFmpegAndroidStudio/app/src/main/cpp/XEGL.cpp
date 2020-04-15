@@ -21,6 +21,18 @@ public:
      */
     EGLSurface surface = EGL_NO_SURFACE;
 
+    /**
+     * 记录context成员值----EGL_NO_CONTEXT可以作为上下文是否有效判断
+     */
+    EGLContext context = EGL_NO_CONTEXT;
+
+    virtual void Draw() {
+        if (display == EGL_NO_DISPLAY || surface == EGL_NO_SURFACE) {
+            return;
+        }
+        eglSwapBuffers(display, surface);
+    }
+
     virtual bool Init(void *win) {
         // 1. 获取EGLDisplay对象---显示设备
         display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
@@ -58,7 +70,7 @@ public:
                 EGL_CONTEXT_CLIENT_VERSION, 2,
                 EGL_NONE
         };
-        EGLContext context = eglCreateContext(display, config, EGL_NO_CONTEXT, ctxAttr);
+        context = eglCreateContext(display, config, EGL_NO_CONTEXT, ctxAttr);
         if (context == EGL_NO_CONTEXT) {
             XLOGW("eglCreateContext failed");
             return false;
@@ -69,7 +81,6 @@ public:
             XLOGW("eglMakeCurrent failed");
             return false;
         }
-        XLOGI("XEGL Init success.");
         return true;
     }
 };

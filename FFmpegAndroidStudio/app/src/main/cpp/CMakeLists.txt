@@ -32,6 +32,8 @@ add_library(
         ${CMAKE_SOURCE_DIR}/XTexture.cpp
         ${CMAKE_SOURCE_DIR}/XEGL.cpp
         ${CMAKE_SOURCE_DIR}/XShader.cpp
+        ${CMAKE_SOURCE_DIR}/IResample.cpp
+        ${CMAKE_SOURCE_DIR}/FFResample.cpp
 )
 
 add_library(avcodec SHARED IMPORTED)
