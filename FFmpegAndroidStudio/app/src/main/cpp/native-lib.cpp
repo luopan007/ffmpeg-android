@@ -12,6 +12,8 @@
 #include "IVideoView.h"
 #include "GLVideoView.h"
 #include "FFResample.h"
+#include "IAudioPlay.h"
+#include "SLAudioPlay.h"
 
 IVideoView *view = NULL;
 
@@ -33,8 +35,13 @@ Java_com_luopan_ffmpeg_XPlay_open(JNIEnv *env, jobject thiz, jstring path, jobje
     vdecode->AddObserver(view);
 
     IResample *resample = new FFResample();
-    resample->Open(demux->GetAudioPara());
+    XParameter outPara = demux->GetAudioPara();
+    resample->Open(demux->GetAudioPara(), outPara);
     adecode->AddObserver(resample);
+
+    IAudioPlay *audioPlay = new SLAudioPlay();
+    audioPlay->StartPlay(outPara);
+    resample->AddObserver(audioPlay);
 
     demux->Start();
     vdecode->Start();

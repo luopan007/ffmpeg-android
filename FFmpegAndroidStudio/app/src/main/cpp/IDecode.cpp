@@ -49,7 +49,7 @@ void IDecode::Main() {
                 if (!frame.data) {
                     break;
                 }
-                XLOGW("RecvFrame size %d", frame.size);
+                // XLOGW("RecvFrame size %d", frame.size);
                 // 发送数据给观察者-----音频输出或者视频显示
                 this->Notify(frame);
             }

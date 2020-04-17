@@ -11,6 +11,14 @@ struct AVCodecParameters;
 class XParameter {
 public:
     AVCodecParameters *para = 0;
+    /**
+     * 音频通道数
+     */
+    int channels = 2;
+    /**
+     * 音频采样率
+     */
+    int sampleRate = 44100;
 };
 
 

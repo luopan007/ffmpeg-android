@@ -34,6 +34,8 @@ add_library(
         ${CMAKE_SOURCE_DIR}/XShader.cpp
         ${CMAKE_SOURCE_DIR}/IResample.cpp
         ${CMAKE_SOURCE_DIR}/FFResample.cpp
+        ${CMAKE_SOURCE_DIR}/IAudioPlay.cpp
+        ${CMAKE_SOURCE_DIR}/SLAudioPlay.cpp
 )
 
 add_library(avcodec SHARED IMPORTED)

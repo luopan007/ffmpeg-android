@@ -72,6 +72,8 @@ XParameter FFDemux::GetAudioPara() {
     XLOGW("GetAudioPara ret = %d", ret);
     XParameter para;
     para.para = ic->streams[ret]->codecpar;
+    para.channels = ic->streams[ret]->codecpar->channels;
+    para.sampleRate = ic->streams[ret]->codecpar->sample_rate;
     audioStream = ret;
     return para;
 }
