@@ -21,7 +21,7 @@ bool FFDecode::Open(XParameter para) {
         return false;
     }
     AVCodecParameters *parameters = para.para;
-    //1 查找解码器
+    // 1 查找解码器
     AVCodec *cd = avcodec_find_decoder(parameters->codec_id);
     if (!cd) {
         XLOGE("avcodec_find_decoder %d failed!", parameters->codec_id);
@@ -29,12 +29,12 @@ bool FFDecode::Open(XParameter para) {
     }
     XLOGI("avcodec_find_decoder success!");
 
-    //2 创建解码上下文，并复制参数
+    // 2 创建解码上下文，并复制参数
     codec = avcodec_alloc_context3(cd);
     avcodec_parameters_to_context(codec, parameters);
     codec->thread_count = DEFAULT_THREAD_NUM;
 
-    //3 打开解码器
+    // 3 打开解码器
     int ret = avcodec_open2(codec, 0, 0);
     if (ret != SUCCESS) {
         char buf[BUFFER_LENGTH] = {0};
