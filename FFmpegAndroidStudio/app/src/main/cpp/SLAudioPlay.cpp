@@ -20,30 +20,16 @@ static SLPlayItf iplayer = NULL;
 
 static SLAndroidSimpleBufferQueueItf pcmQue = NULL;
 
-void SLAudioPlay::PlayCall(void *bufQueue) {
-    SLAndroidSimpleBufferQueueItf bf = static_cast<SLAndroidSimpleBufferQueueItf>(bufQueue);
-    if (!bf) {
-        XLOGW("PlayCall failed bufQueue is null.");
-        return;
-    }
-    XLOGI("PlayCall success");
+// 1MB的缓冲空间
+static const int BUF_SIZE = 1024 * 1024;
+
+SLAudioPlay::SLAudioPlay() {
+    buf = new unsigned char[BUF_SIZE];
 }
 
-/**
- * 回调函数
- *
- * @param bf
- * @param context
- */
-static void PcmCall(SLAndroidSimpleBufferQueueItf bf, void *context) {
-    XLOGI("PcmCall IN");
-    SLAudioPlay *ap = static_cast<SLAudioPlay *>(context);
-    if (!ap) {
-        XLOGW("PcmCall failed context is null");
-        return;
-    }
-    // 如果bf是对象，是不能强转为void*的；
-    ap->PlayCall((void *) bf);
+SLAudioPlay::~SLAudioPlay() {
+    delete buf;
+    buf = 0;
 }
 
 /**
@@ -67,7 +53,44 @@ static SLEngineItf CreateSL() {
         return NULL;
     }
     return en;
-};
+}
+
+void SLAudioPlay::PlayCall(void *bufQueue) {
+    if (!bufQueue) {
+        XLOGW("PlayCall failed bufQueue is null.");
+        return;
+    }
+    SLAndroidSimpleBufferQueueItf bf = static_cast<SLAndroidSimpleBufferQueueItf>(bufQueue);
+    // 阻塞函数
+    XData d = GetData();
+    if (d.size <= 0) {
+        XLOGW("GetData size is 0");
+        return;
+    }
+    if (!buf) {
+        return;
+    }
+    memcpy(buf, d.data, d.size);
+    (*bf)->Enqueue(bf, buf, d.size);
+    d.Drop(); // 销毁数据，否则内存泄漏
+}
+
+/**
+ * 回调函数
+ *
+ * @param bf
+ * @param context
+ */
+static void PcmCall(SLAndroidSimpleBufferQueueItf bf, void *context) {
+    SLAudioPlay *ap = static_cast<SLAudioPlay *>(context);
+    if (!ap) {
+        XLOGW("PcmCall failed context is null");
+        return;
+    }
+    // 如果bf是对象，是不能强转为void*的；
+    ap->PlayCall((void *) bf);
+}
+
 
 bool SLAudioPlay::StartPlay(XParameter out) {
     // 1.创建音频解码引擎
@@ -142,5 +165,3 @@ bool SLAudioPlay::StartPlay(XParameter out) {
     XLOGI("SLAudioPlay::StartPlay Success.");
     return true;
 }
-
-

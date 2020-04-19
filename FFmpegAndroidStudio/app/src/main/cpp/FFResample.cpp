@@ -59,6 +59,5 @@ XData FFResample::Resample(XData indata) {
         out.Drop();
         return XData();
     }
-    // XLOGI("swr_convert success = %d", len);
     return out;
 }

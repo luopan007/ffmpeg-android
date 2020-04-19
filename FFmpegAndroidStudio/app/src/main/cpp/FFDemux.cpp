@@ -9,11 +9,11 @@ extern "C" {
 #include <libavformat/avformat.h> // Demux library head file
 }
 
-const int SUCCESS = 0;
+static const int SUCCESS = 0;
 
-const int BUFFER_LENGTH = 1024;
+static const int BUFFER_LENGTH = 1024;
 
-const int ONE_THOUSAND = 1000;
+static const int ONE_THOUSAND = 1000;
 
 bool FFDemux::Open(const char *url) {
     int ret = avformat_open_input(&ic, url, 0, 0);

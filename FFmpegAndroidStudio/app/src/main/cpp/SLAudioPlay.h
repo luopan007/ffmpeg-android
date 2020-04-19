@@ -19,6 +19,22 @@ public:
     virtual bool StartPlay(XParameter out);
 
     void PlayCall(void *bufQueue);
+
+    /**
+     * 构造函数
+     */
+    SLAudioPlay();
+
+    /**
+     * 析构函数
+     */
+    virtual ~SLAudioPlay();
+
+protected:
+    /**
+     * 缓存音频数据
+     */
+    unsigned char *buf = 0;
 };
 
 
