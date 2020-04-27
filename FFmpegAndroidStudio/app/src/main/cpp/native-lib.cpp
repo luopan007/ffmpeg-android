@@ -29,26 +29,19 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_luopan_ffmpeg_XPlay_open(JNIEnv *env, jobject thiz, jstring path, jobject surface) {
     IDemux *demux = new FFDemux();
-//    demux->Open("/sdcard/1080.mp4");
-
     IDecode *vdecode = new FFDecode();
-//    vdecode->Open(demux->GetVideoPara(), false);
     demux->AddObserver(vdecode); // 把视频解码器当成观察者加入到解封装器中
 
     IDecode *adecode = new FFDecode();
-//    adecode->Open(demux->GetAudioPara(), false);
     demux->AddObserver(adecode); // 把音频解码器当成观察者加入到解封装器中
 
     view = new GLVideoView();
     vdecode->AddObserver(view);
 
     IResample *resample = new FFResample();
-    XParameter outPara = demux->GetAudioPara();
-//    resample->Open(demux->GetAudioPara(), outPara);
     adecode->AddObserver(resample);
 
     IAudioPlay *audioPlay = new SLAudioPlay();
-//    audioPlay->StartPlay(outPara);
     resample->AddObserver(audioPlay);
 
     IPlayer::Get()->demux = demux;
@@ -60,10 +53,6 @@ Java_com_luopan_ffmpeg_XPlay_open(JNIEnv *env, jobject thiz, jstring path, jobje
     IPlayer::Get()->isHardDecode = false;
     IPlayer::Get()->Open("/sdcard/1080.mp4");
     IPlayer::Get()->Start();
-
-//    demux->Start();
-//    vdecode->Start();
-//    adecode->Start();
 }
 
 extern "C"
@@ -72,8 +61,4 @@ Java_com_luopan_ffmpeg_XPlay_InitView(JNIEnv *env, jobject instance, jobject sur
     // 从Java获取窗口
     ANativeWindow *nativeWindow = ANativeWindow_fromSurface(env, surface);
     IPlayer::Get()->InitView(nativeWindow);
-//    view->SetRender(nativeWindow);
-//    XEGL::Get()->Init(nativeWindow);
-//    XShader shader;
-//    shader.Init();
 }
