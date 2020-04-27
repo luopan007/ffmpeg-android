@@ -99,9 +99,6 @@ XData FFDecode::RecvFrame() {
         XLOGW("invalid type");
     }
     data.format = frame->format;
-    if (!isAudio) {
-        XLOGI("format %d", frame->format);
-    }
     memcpy(data.datas, frame->data, sizeof(data.datas));
     return data;
 }
