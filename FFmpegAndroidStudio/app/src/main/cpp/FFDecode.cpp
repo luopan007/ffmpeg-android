@@ -47,7 +47,7 @@ bool FFDecode::Open(XParameter para, bool isHard) {
     if (ret != SUCCESS) {
         char buf[BUFFER_LENGTH] = {0};
         av_strerror(ret, buf, sizeof(buf) - 1);
-        XLOGE("%s", buf);
+        XLOGE("avcodec_open2 failed: %s", buf);
         return false;
     }
 
