@@ -15,6 +15,13 @@
 #include "IAudioPlay.h"
 #include "SLAudioPlay.h"
 
+
+extern "C"
+jint JNI_OnLoad(JavaVM *vm, void *res) {
+    FFDecode::InitHard(vm);
+    return JNI_VERSION_1_6;
+}
+
 IVideoView *view = NULL;
 
 extern "C"
@@ -24,11 +31,11 @@ Java_com_luopan_ffmpeg_XPlay_open(JNIEnv *env, jobject thiz, jstring path, jobje
     demux->Open("/sdcard/1080.mp4");
 
     IDecode *vdecode = new FFDecode();
-    vdecode->Open(demux->GetVideoPara());
+    vdecode->Open(demux->GetVideoPara(), false);
     demux->AddObserver(vdecode); // 把视频解码器当成观察者加入到解封装器中
 
     IDecode *adecode = new FFDecode();
-    adecode->Open(demux->GetAudioPara());
+    adecode->Open(demux->GetAudioPara(), false);
     demux->AddObserver(adecode); // 把音频解码器当成观察者加入到解封装器中
 
     view = new GLVideoView();

@@ -15,7 +15,7 @@ void GLVideoView::Render(XData data) {
     }
     if (!txt) {
         txt = XTexture::Create();
-        txt->Init(view);
+        txt->Init(view,(XTextureType)data.format);
     }
     txt->Draw(data.datas, data.width, data.height);
 }

@@ -19,7 +19,7 @@ public:
      *
      * @return 是否打开成功
      */
-    virtual bool Open(XParameter param) = 0;
+    virtual bool Open(XParameter para, bool isHard = false) = 0;
 
     /**
      * Future模型：发送数据到线程解码

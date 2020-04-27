@@ -4,7 +4,12 @@
 
 #ifndef FFMPEG_XTEXTURE_H
 #define FFMPEG_XTEXTURE_H
+enum XTextureType {
+    XTEXTURE_YUV420P = 0,  // Y 4  u 1 v 1
+    XTEXTURE_NV12 = 25,    // Y4   uv1
+    XTEXTURE_NV21 = 26     // Y4   vu1
 
+};
 
 class XTexture {
 public:
@@ -16,7 +21,7 @@ public:
      * @param win 窗口
      * @return 是否初始化成功
      */
-    virtual bool Init(void *win) = 0;
+    virtual bool Init(void *win, XTextureType type = XTEXTURE_YUV420P) = 0;
 
     /**
      * 绘制数据

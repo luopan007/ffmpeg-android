@@ -17,11 +17,18 @@ struct AVFrame;
 class FFDecode : public IDecode {
 public:
     /**
+     * 初始化硬解码
+     *
+     * @param vm java virtual meachine
+     */
+    static void InitHard(void *vm);
+
+    /**
      * 打开解码器参数
      *
      * @return 是否打开成功
      */
-    virtual bool Open(XParameter param);
+    virtual bool Open(XParameter para, bool isHard = false);
 
     /**
      * Future模型：发送数据到线程解码
