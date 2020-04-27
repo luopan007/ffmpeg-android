@@ -59,6 +59,7 @@ Java_com_luopan_ffmpeg_XPlay_open(JNIEnv *env, jobject thiz, jstring path, jobje
     IPlayer::Get()->audioPlay = audioPlay;
     IPlayer::Get()->isHardDecode = false;
     IPlayer::Get()->Open("/sdcard/1080.mp4");
+    IPlayer::Get()->Start();
 
 //    demux->Start();
 //    vdecode->Start();
@@ -70,7 +71,8 @@ JNIEXPORT void JNICALL
 Java_com_luopan_ffmpeg_XPlay_InitView(JNIEnv *env, jobject instance, jobject surface) {
     // 从Java获取窗口
     ANativeWindow *nativeWindow = ANativeWindow_fromSurface(env, surface);
-    view->SetRender(nativeWindow);
+    IPlayer::Get()->InitView(nativeWindow);
+//    view->SetRender(nativeWindow);
 //    XEGL::Get()->Init(nativeWindow);
 //    XShader shader;
 //    shader.Init();

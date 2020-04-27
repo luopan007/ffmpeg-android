@@ -28,7 +28,9 @@ bool IPlayer::Open(const char *path) {
     if (!aDecode || !aDecode->Open(demux->GetAudioPara())) {
         XLOGW("aDecode open failed %s", path);
     }
-    XParameter outPara = demux->GetAudioPara();
+    if (outPara.sampleRate <= 0) {
+        outPara = demux->GetAudioPara();
+    }
     if (!resample || !resample->Open(demux->GetAudioPara(), outPara)) {
         XLOGW("resample open failed %s", path);
     }
@@ -37,9 +39,29 @@ bool IPlayer::Open(const char *path) {
 }
 
 bool IPlayer::Start() {
-
+    if (!demux || !demux->Start()) {
+        XLOGW("demux start failed");
+        return false;
+    }
+    if (aDecode) {
+        aDecode->Start();
+    }
+    if (audioPlay) {
+        audioPlay->StartPlay(outPara);
+    }
+    if (vDecode) {
+        vDecode->Start();
+    }
+    XLOGI("IPlayer Start success");
     return true;
 }
 
 IPlayer::IPlayer() {
+}
+
+bool IPlayer::InitView(void *win) {
+    if (videoView) {
+        videoView->SetRender(win);
+    }
+    return true;
 }

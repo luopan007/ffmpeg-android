@@ -7,6 +7,7 @@
 
 
 #include "XThread.h"
+#include "XParameter.h"
 
 class IDemux;
 
@@ -42,6 +43,19 @@ public:
      * @return 是否开始成功
      */
     virtual bool Start();
+
+    /**
+     * 初始化显示窗口
+     *
+     * @param win 窗口实例
+     * @return 是否初始化成功
+     */
+    virtual bool InitView(void *win);
+
+    /**
+     * 音频输出参数配置
+     */
+    XParameter outPara;
 
     /**
      * 是否采用硬解码
