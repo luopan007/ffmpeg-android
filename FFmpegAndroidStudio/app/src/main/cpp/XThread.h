@@ -15,7 +15,7 @@ public:
     /**
      * Start thread
      */
-    virtual void Start();
+    virtual bool Start();
 
     /**
      * Stop thread(safe mode)

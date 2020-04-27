@@ -36,6 +36,7 @@ add_library(
         ${CMAKE_SOURCE_DIR}/FFResample.cpp
         ${CMAKE_SOURCE_DIR}/IAudioPlay.cpp
         ${CMAKE_SOURCE_DIR}/SLAudioPlay.cpp
+        ${CMAKE_SOURCE_DIR}/IPlayer.cpp
 )
 
 add_library(avcodec SHARED IMPORTED)
