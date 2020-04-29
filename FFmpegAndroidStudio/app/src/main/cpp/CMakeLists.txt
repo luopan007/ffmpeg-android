@@ -37,6 +37,9 @@ add_library(
         ${CMAKE_SOURCE_DIR}/IAudioPlay.cpp
         ${CMAKE_SOURCE_DIR}/SLAudioPlay.cpp
         ${CMAKE_SOURCE_DIR}/IPlayer.cpp
+        ${CMAKE_SOURCE_DIR}/IPlayerBuilder.cpp
+        ${CMAKE_SOURCE_DIR}/FFPlayerBuilder.cpp
+        ${CMAKE_SOURCE_DIR}/IPlayerPorxy.cpp
 )
 
 add_library(avcodec SHARED IMPORTED)

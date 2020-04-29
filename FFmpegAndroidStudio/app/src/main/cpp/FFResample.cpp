@@ -11,6 +11,14 @@ extern "C"
 #include <libavcodec/avcodec.h>
 #include "FFResample.h"
 
+void FFResample::Close() {
+    mux.lock();
+    if (actx) {
+        swr_free(&actx);
+    }
+    mux.unlock();
+}
+
 bool FFResample::Open(XParameter in, XParameter out) {
     //音频重采样上下文初始化
     actx = swr_alloc();
@@ -38,7 +46,9 @@ XData FFResample::Resample(XData indata) {
     if (indata.size <= 0 || !indata.data) {
         return XData();
     }
+    mux.lock();
     if (!actx) {
+        mux.unlock();
         return XData();
     }
     AVFrame *frame = (AVFrame *) indata.data;
@@ -56,8 +66,11 @@ XData FFResample::Resample(XData indata) {
     int len = swr_convert(actx, outArr, frame->nb_samples, (const uint8_t **) frame->data,
                           frame->nb_samples);
     if (len <= 0) {
+        mux.unlock();
         out.Drop();
         return XData();
     }
+    out.pts = indata.pts;
+    mux.unlock();
     return out;
 }

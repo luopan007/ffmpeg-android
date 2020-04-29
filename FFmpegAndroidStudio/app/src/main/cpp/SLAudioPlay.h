@@ -18,6 +18,8 @@ public:
      */
     virtual bool StartPlay(XParameter out);
 
+    virtual void Close();
+
     void PlayCall(void *bufQueue);
 
     /**
@@ -35,6 +37,7 @@ protected:
      * 缓存音频数据
      */
     unsigned char *buf = 0;
+    std::mutex mux;
 };
 
 

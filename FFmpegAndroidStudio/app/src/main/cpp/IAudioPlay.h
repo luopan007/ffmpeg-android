@@ -6,9 +6,9 @@
 #define FFMPEG_IAUDIOPLAY_H
 
 
+#include <list>
 #include "IObserver.h"
 #include "XParameter.h"
-#include <list>
 
 class IAudioPlay : public IObserver {
 public:
@@ -34,13 +34,18 @@ public:
      */
     virtual bool StartPlay(XParameter out) = 0;
 
+    virtual void Close() = 0;
+
+    virtual void Clear();
+
     /**
      * 默认队列的最大缓冲
      */
     int maxFrame = 100;
+    int pts = 0;
 protected:
     std::list<XData> frames;
-    std::mutex framesMutes;
+    std::mutex framesMutex;
 };
 
 

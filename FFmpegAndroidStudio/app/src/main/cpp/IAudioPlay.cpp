@@ -5,19 +5,35 @@
 #include "IAudioPlay.h"
 #include "XLog.h"
 
+void IAudioPlay::Clear() {
+    framesMutex.lock();
+    while (!frames.empty()) {
+        frames.front().Drop();
+        frames.pop_front();
+    }
+    framesMutex.unlock();
+}
+
 XData IAudioPlay::GetData() {
     XData d;
+    isRunning = true;
     while (!isExit) {
-        framesMutes.lock();
+        if (IsPause()) {
+            XSleep(2);
+            continue;
+        }
+        framesMutex.lock();
         if (!frames.empty()) {
             d = frames.front();
             frames.pop_front();
-            framesMutes.unlock();
+            framesMutex.unlock();
+            pts = d.pts;
             return d;
         }
-        framesMutes.unlock();
+        framesMutex.unlock();
         XSleep(1);
     }
+    isRunning = false;
     return d;
 }
 
@@ -28,14 +44,14 @@ void IAudioPlay::Update(XData data) {
         return;
     }
     while (!isExit) {
-        framesMutes.lock();
+        framesMutex.lock();
         if (frames.size() > maxFrame) {
-            framesMutes.unlock();
+            framesMutex.unlock();
             XSleep(1);
             continue;
         }
         frames.push_back(data);
-        framesMutes.unlock();
+        framesMutex.unlock();
         break;
     }
 }

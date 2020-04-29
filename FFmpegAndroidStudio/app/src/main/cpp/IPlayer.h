@@ -6,6 +6,7 @@
 #define FFMPEG_IPLAYER_H
 
 
+#include <mutex>
 #include "XThread.h"
 #include "XParameter.h"
 
@@ -37,6 +38,8 @@ public:
      */
     virtual bool Open(const char *path);
 
+    virtual void Close();
+
     /**
      * 开始播放
      *
@@ -50,7 +53,14 @@ public:
      * @param win 窗口实例
      * @return 是否初始化成功
      */
-    virtual bool InitView(void *win);
+    virtual void InitView(void *win);
+
+    //获取当前的播放进度 0.0 ~ 1.0
+    virtual double PlayPos();
+
+    virtual bool Seek(double pos);
+
+    virtual void SetPause(bool isP);
 
     /**
      * 音频输出参数配置
@@ -93,6 +103,11 @@ public:
     IAudioPlay *audioPlay = 0;
 
 protected:
+    //用作音视频同步
+    void Main();
+
+    std::mutex mux;
+
     /**
      * 构造函数被保护起来
      */

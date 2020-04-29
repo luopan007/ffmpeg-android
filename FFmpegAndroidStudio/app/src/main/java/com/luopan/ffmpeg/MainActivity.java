@@ -2,18 +2,23 @@ package com.luopan.ffmpeg;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.SeekBar;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
-public class MainActivity extends AppCompatActivity {
-    private static final String TAG = "MainActivity";
+public class MainActivity extends AppCompatActivity
+        implements Runnable, SeekBar.OnSeekBarChangeListener {
+    private static final String TAG = "XPlay";
 
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
 
@@ -25,6 +30,8 @@ public class MainActivity extends AppCompatActivity {
         System.loadLibrary("native-lib");
         Log.i(TAG, "loadLibrary success");
     }
+
+    private SeekBar seek;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +49,52 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
         verifyStoragePermissions(this);
+
+        Button bt = findViewById(R.id.open_button);
+        seek = findViewById(R.id.aplayseek);
+        seek.setMax(1000);
+        seek.setOnSeekBarChangeListener(this);
+
+        bt.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Log.i(TAG, "open button click!");
+                        // 打开选择路径窗口
+                        Intent intent = new Intent();
+                        intent.setClass(MainActivity.this, OpenUrl.class);
+                        startActivity(intent);
+                    }
+                });
+
+        // 启动播放进度线程
+        Thread th = new Thread(this);
+        th.start();
+        Log.i(TAG, "onCreate thread name:" + Thread.currentThread().getName());
+    }
+
+    @Override
+    public void run() {
+        Log.i(TAG, "run thread name:" + Thread.currentThread().getName());
+        for (; ; ) {
+            seek.setProgress((int) (GetPlayPosition() * 1000));
+            try {
+                Thread.sleep(40);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @Override
+    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {}
+
+    @Override
+    public void onStartTrackingTouch(SeekBar seekBar) {}
+
+    @Override
+    public void onStopTrackingTouch(SeekBar seekBar) {
+        SeekTo((double) seekBar.getProgress() / (double) seekBar.getMax());
     }
 
     @Override
@@ -94,4 +147,8 @@ public class MainActivity extends AppCompatActivity {
                     activity, PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE);
         }
     }
+
+    public native double GetPlayPosition();
+
+    public native void SeekTo(double position);
 }

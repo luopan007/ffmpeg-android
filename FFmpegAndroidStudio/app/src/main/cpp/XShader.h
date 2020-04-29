@@ -4,8 +4,10 @@
 
 #ifndef FFMPEG_XSHADER_H
 #define FFMPEG_XSHADER_H
-enum XShaderType
-{
+
+#include <mutex>
+
+enum XShaderType {
     XSHADER_YUV420P = 0,    //软解码和虚拟机
     XSHADER_NV12 = 25,      //手机
     XSHADER_NV21 = 26
@@ -18,7 +20,10 @@ public:
      *
      * @return 是否初始化成功
      */
-    virtual bool Init(XShaderType type=XSHADER_YUV420P);
+    virtual bool Init(XShaderType type = XSHADER_YUV420P);
+
+    virtual void Close();
+
     /**
      * 获取材质并映射到内存
      *
@@ -27,7 +32,8 @@ public:
      * @param height
      * @param buf
      */
-    virtual void GetTexture(unsigned int index,int width,int height, unsigned char *buf,bool isa=false);
+    virtual void
+    GetTexture(unsigned int index, int width, int height, unsigned char *buf, bool isa = false);
 
     virtual void Draw();
 
@@ -46,6 +52,7 @@ protected:
      */
     unsigned int program = 0;
     unsigned int texts[100] = {0};
+    std::mutex mux;
 };
 
 

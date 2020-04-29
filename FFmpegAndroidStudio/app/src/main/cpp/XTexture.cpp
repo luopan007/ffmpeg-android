@@ -2,6 +2,7 @@
 // Created by luopan on 2020/4/14.
 //
 
+#include <mutex>
 #include "XTexture.h"
 #include "XLog.h"
 #include "XEGL.h"
@@ -12,23 +13,39 @@ public:
 
     XShader sh;
     XTextureType type;
+    std::mutex mux;
+
+    virtual void Drop() {
+        mux.lock();
+        XEGL::Get()->Close();
+        sh.Close();
+        mux.unlock();
+        delete this;
+    }
 
     virtual bool Init(void *win, XTextureType type) {
+        mux.lock();
+        XEGL::Get()->Close();
+        sh.Close();
         this->type = type;
         if (!win) {
+            mux.unlock();
             XLOGW("XTexture Init failed.");
             return false;
         }
         if (!XEGL::Get()->Init(win)) {
             XLOGI("XEGL Init failed.");
+            mux.unlock();
             return false;
         };
         sh.Init((XShaderType) type);
+        mux.unlock();
         return true;
     }
 
     virtual void Draw(unsigned char *data[], int width, int height) {
-        sh.GetTexture(0, width, height, data[0]);          // Y
+        mux.lock();
+        sh.GetTexture(0, width, height, data[0]);              // Y
         if (type == XTEXTURE_YUV420P) {
             sh.GetTexture(1, width / 2, height / 2, data[1]);  // U
             sh.GetTexture(2, width / 2, height / 2, data[2]);  // V
@@ -37,6 +54,7 @@ public:
         }
         sh.Draw();
         XEGL::Get()->Draw();
+        mux.unlock();
     }
 };
 

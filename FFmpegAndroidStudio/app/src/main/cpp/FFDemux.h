@@ -7,6 +7,7 @@
 
 
 #include "IDemux.h"
+#include <mutex>
 
 struct AVFormatContext;
 
@@ -19,6 +20,10 @@ public:
      * @return success or fail
      */
     virtual bool Open(const char *url);
+
+    virtual bool Seek(double pos);
+
+    virtual void Close();
 
     /**
      * Get the video parameter for video decode
@@ -47,6 +52,7 @@ public:
 
 private:
     AVFormatContext *ic = 0;
+    std::mutex mux;
 
     int audioStream = 1;
 

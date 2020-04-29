@@ -31,6 +31,16 @@ public:
     virtual bool Open(XParameter para, bool isHard = false);
 
     /**
+     * 关闭
+     */
+    virtual void Close();
+
+    /**
+     * 清理
+     */
+    virtual void Clear();
+
+    /**
      * Future模型：发送数据到线程解码
     *
     * @return
@@ -54,6 +64,7 @@ protected:
      * 解码后的数据
      */
     AVFrame *frame = 0;
+    std::mutex mux;
 };
 
 

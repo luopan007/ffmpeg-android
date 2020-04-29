@@ -6,6 +6,7 @@
 #define FFMPEG_GLVIDEOVIEW_H
 
 
+#include "XData.h"
 #include "IVideoView.h"
 
 class XTexture; // 写这句话的目的是不想去引用XTexture的头文件
@@ -26,6 +27,8 @@ public:
      */
     virtual void Render(XData data);
 
+    virtual void Close();
+
 protected:
     /**
      * 窗体显示
@@ -36,6 +39,7 @@ protected:
      * 渲染的纹理
      */
     XTexture *txt = 0;
+    std::mutex mux;
 };
 
 

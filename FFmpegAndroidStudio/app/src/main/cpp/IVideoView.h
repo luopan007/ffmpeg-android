@@ -33,6 +33,7 @@ public:
  */
     virtual void Update(XData data);
 
+    virtual void Close() = 0;
 };
 
 

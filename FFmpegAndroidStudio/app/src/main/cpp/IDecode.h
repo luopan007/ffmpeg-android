@@ -21,6 +21,10 @@ public:
      */
     virtual bool Open(XParameter para, bool isHard = false) = 0;
 
+    virtual void Close() = 0;
+
+    virtual void Clear();
+
     /**
      * Future模型：发送数据到线程解码
      *
@@ -40,7 +44,7 @@ public:
      *
      * @param 音视频帧数据
      */
-    virtual void Update(XData data);
+    virtual void Update(XData pkt);
 
     /**
      * 是否为音频数据
@@ -51,6 +55,13 @@ public:
      * 最多存储100帧数据，如果按照25FPS计算，就是4秒缓存
      */
     int maxList = 100;
+
+    /**
+     * 同步时间，再次打开文件要清理
+     */
+    int synPts = 0;
+
+    int pts = 0;
 protected:
     /**
      * 线程解码主函数
@@ -67,6 +78,5 @@ protected:
      */
     std::mutex packsMutex;
 };
-
 
 #endif //FFMPEG_IDECODE_H

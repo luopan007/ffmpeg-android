@@ -64,8 +64,8 @@ static const char *fragNV12 = GET_STR(
 //片元着色器,软解码和部分x86硬解码
 static const char *fragNV21 = GET_STR(
         precision mediump float;      //精度
-        varying vec2 vTexCoord;     //顶点着色器传递的坐标
-        uniform sampler2D yTexture; //输入的材质（不透明灰度，单像素）
+        varying vec2 vTexCoord;       //顶点着色器传递的坐标
+        uniform sampler2D yTexture;   //输入的材质（不透明灰度，单像素）
         uniform sampler2D uvTexture;
         void main() {
             vec3 yuv;
@@ -107,10 +107,36 @@ static GLuint InitShader(const char *code, GLint type) {
     return sh;
 }
 
+void XShader::Close() {
+    mux.lock();
+    //释放shader
+    if (program) {
+        glDeleteProgram(program);
+    }
+    if (fsh) {
+        glDeleteShader(fsh);
+    }
+    if (vsh) {
+        glDeleteShader(vsh);
+    }
+
+    //释放材质
+    for (int i = 0; i < sizeof(texts) / sizeof(unsigned int); i++) {
+        if (texts[i]) {
+            glDeleteTextures(1, &texts[i]);
+        }
+        texts[i] = 0;
+    }
+    mux.unlock();
+}
+
 bool XShader::Init(XShaderType type) {
+    Close();
     // 1.顶点shader初始化
+    mux.lock();
     vsh = InitShader(vertexShader, GL_VERTEX_SHADER);
     if (vsh == FAILED) {
+        mux.unlock();
         XLOGW("InitShader GL_VERTEX_SHADER failed!");
         return false;
     }
@@ -126,13 +152,14 @@ bool XShader::Init(XShaderType type) {
             break;
         case XSHADER_NV21:
             fsh = InitShader(fragNV21, GL_FRAGMENT_SHADER);
-
             break;
         default:
+            mux.unlock();
             XLOGE("XSHADER format is error");
             return false;
     }
     if (fsh == FAILED) {
+        mux.unlock();
         XLOGW("InitShader GL_FRAGMENT_SHADER failed!");
         return false;
     }
@@ -141,6 +168,7 @@ bool XShader::Init(XShaderType type) {
     // 3.创建渲染程序
     program = glCreateProgram();
     if (program == FAILED) {
+        mux.unlock();
         XLOGW("glCreateProgram failed!");
         return false;
     }
@@ -154,6 +182,7 @@ bool XShader::Init(XShaderType type) {
     GLint status = 0;
     glGetProgramiv(program, GL_LINK_STATUS, &status);
     if (status != GL_TRUE) {
+        mux.unlock();
         XLOGE("glLinkProgram failed!");
         return false;
     }
@@ -196,23 +225,28 @@ bool XShader::Init(XShaderType type) {
             glUniform1i(glGetUniformLocation(program, "uvTexture"), 1); //对于纹理第2层
             break;
     }
+    mux.unlock();
     XLOGI("初始化Shader成功！");
     return true;
 }
 
 void XShader::Draw() {
+    mux.lock();
     if (!program) {
         XLOGW("XShader Draw program is null.");
+        mux.unlock();
         return;
     }
     //三维绘制
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    mux.unlock();
 }
 
 void XShader::GetTexture(unsigned int index, int width, int height, unsigned char *buf, bool isa) {
     unsigned int format = GL_LUMINANCE;
     if (isa)
         format = GL_LUMINANCE_ALPHA;
+    mux.lock();
     if (texts[index] == 0) {
         //材质初始化
         glGenTextures(1, &texts[index]);
@@ -224,10 +258,10 @@ void XShader::GetTexture(unsigned int index, int width, int height, unsigned cha
         //设置纹理的格式和大小
         glTexImage2D(GL_TEXTURE_2D,
                      0,                      // 细节基本 0默认
-                     format,//gpu内部格式 亮度，灰度图
+                     format,                 //gpu内部格式 亮度，灰度图
                      width, height,          // 拉升到全屏
                      0,                      // 边框
-                     format,//数据的像素格式 亮度，灰度图 要与上面一致
+                     format,                 //数据的像素格式 亮度，灰度图 要与上面一致
                      GL_UNSIGNED_BYTE,       // 像素的数据类型
                      NULL                    // 纹理的数据
         );
@@ -238,4 +272,5 @@ void XShader::GetTexture(unsigned int index, int width, int height, unsigned cha
     glBindTexture(GL_TEXTURE_2D, texts[index]);
     //替换纹理内容
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, format, GL_UNSIGNED_BYTE, buf);
+    mux.unlock();
 }

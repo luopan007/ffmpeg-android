@@ -21,6 +21,10 @@ public:
      */
     virtual bool Open(const char *url) = 0;
 
+    virtual bool Seek(double pos) = 0;
+
+    virtual void Close() = 0;
+
     /**
      * Get the video parameter for video decode
      *

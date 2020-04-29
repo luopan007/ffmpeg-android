@@ -2,13 +2,13 @@
 // Created by luopan on 2020/4/12.
 //
 
-#include "FFDecode.h"
-#include "XLog.h"
-
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavcodec/jni.h>
 }
+
+#include "FFDecode.h"
+#include "XLog.h"
 
 const int SUCCESS = 0;
 
@@ -17,10 +17,34 @@ const int BUFFER_LENGTH = 1024;
 const int DEFAULT_THREAD_NUM = 8;
 
 void FFDecode::InitHard(void *vm) {
-    av_jni_set_java_vm(vm, 0);
+    int ret = av_jni_set_java_vm(vm, 0);
+    XLOGI("av_jni_set_java_vm success[%d]", ret);
+}
+
+void FFDecode::Clear() {
+
+    IDecode::Clear();
+    mux.lock();
+    if (codec)
+        avcodec_flush_buffers(codec);
+    mux.unlock();
+}
+
+void FFDecode::Close() {
+    IDecode::Clear();
+    mux.lock();
+    pts = 0;
+    if (frame)
+        av_frame_free(&frame);
+    if (codec) {
+        avcodec_close(codec);
+        avcodec_free_context(&codec);
+    }
+    mux.unlock();
 }
 
 bool FFDecode::Open(XParameter para, bool isHard) {
+    Close();
     if (!para.para) {
         XLOGW("FFDecode::Open para is null");
         return false;
@@ -37,6 +61,7 @@ bool FFDecode::Open(XParameter para, bool isHard) {
     }
     XLOGI("avcodec_find_decoder success %d!", isHard);
 
+    mux.lock();
     // 2 创建解码上下文，并复制参数
     codec = avcodec_alloc_context3(cd);
     avcodec_parameters_to_context(codec, parameters);
@@ -45,6 +70,7 @@ bool FFDecode::Open(XParameter para, bool isHard) {
     // 3 打开解码器
     int ret = avcodec_open2(codec, 0, 0);
     if (ret != SUCCESS) {
+        mux.unlock();
         char buf[BUFFER_LENGTH] = {0};
         av_strerror(ret, buf, sizeof(buf) - 1);
         XLOGE("avcodec_open2 failed: %s", buf);
@@ -56,6 +82,7 @@ bool FFDecode::Open(XParameter para, bool isHard) {
     } else {
         this->isAudio = true;
     }
+    mux.unlock();
     XLOGI("avcodec_open2 success!");
     return true;
 }
@@ -64,10 +91,13 @@ bool FFDecode::SendPacket(XData pkt) {
     if (pkt.size <= 0 || !pkt.data) {
         return false;
     }
+    mux.lock();
     if (!codec) {
+        mux.unlock();
         return false;
     }
     int ret = avcodec_send_packet(codec, (AVPacket *) pkt.data);
+    mux.unlock();
     if (ret != SUCCESS) {
         return false;
     }
@@ -75,7 +105,9 @@ bool FFDecode::SendPacket(XData pkt) {
 }
 
 XData FFDecode::RecvFrame() {
+    mux.lock();
     if (!codec) {
+        mux.unlock();
         return XData();
     }
     if (!frame) {
@@ -83,6 +115,7 @@ XData FFDecode::RecvFrame() {
     }
     int ret = avcodec_receive_frame(codec, frame);
     if (ret != SUCCESS) {
+        mux.unlock();
         return XData();
     }
     XData data;
@@ -100,5 +133,8 @@ XData FFDecode::RecvFrame() {
     }
     data.format = frame->format;
     memcpy(data.datas, frame->data, sizeof(data.datas));
+    data.pts = static_cast<int>(frame->pts);
+    pts = data.pts;
+    mux.unlock();
     return data;
 }

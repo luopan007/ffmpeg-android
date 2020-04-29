@@ -8,15 +8,15 @@ void IObserver::AddObserver(IObserver *observer) {
     if (!observer) {
         return;
     }
-    lock.lock();
+    mux.lock();
     obss.push_back(observer);
-    lock.unlock();
+    mux.unlock();
 }
 
 void IObserver::Notify(XData data) {
-    lock.lock();
+    mux.lock();
     for (int i = 0; i < obss.size(); i++) {
         obss[i]->Update(data);
     }
-    lock.unlock();
+    mux.unlock();
 }

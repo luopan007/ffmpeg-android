@@ -13,14 +13,29 @@ void XSleep(int mis);
 class XThread {
 public:
     /**
-     * Start thread
+     * 线程开始
      */
     virtual bool Start();
 
     /**
-     * Stop thread(safe mode)
+     * 线程停止--安全模式
      */
     virtual void Stop();
+
+    /**
+     * 线程暂停
+     *
+     * @param isP 是否暂停
+     */
+    virtual void SetPause(bool isP);
+
+    /**
+     * 返回线程是否处于暂停状态
+     */
+    virtual bool IsPause() {
+        isPausing = isPause;
+        return isPause;
+    }
 
     /**
      * Main function
@@ -30,6 +45,8 @@ public:
 protected:
     bool isExit = false;
     bool isRunning = false;
+    bool isPause = false;
+    bool isPausing = false;
 private:
     void ThreadMain();
 };

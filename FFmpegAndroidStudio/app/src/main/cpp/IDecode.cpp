@@ -5,7 +5,9 @@
 #include "IDecode.h"
 #include "XLog.h"
 
-const int DECODE_WAIT_TIME = 1;
+const static int DECODE_WAIT_TIME_ONE = 1;
+
+const static int DECODE_WAIT_TIME_TWO = 2;
 
 /**
  * 由解封装器（主体）的线程回调过来给解码器（观察者）
@@ -25,16 +27,41 @@ void IDecode::Update(XData pkt) {
             break;
         }
         packsMutex.unlock();
-        XSleep(DECODE_WAIT_TIME);
+        XSleep(DECODE_WAIT_TIME_ONE);
     }
+}
+
+void IDecode::Clear() {
+    packsMutex.lock();
+    while (!packs.empty()) {
+        packs.front().Drop();
+        packs.pop_front();
+    }
+    pts = 0;
+    synPts = 0;
+    packsMutex.unlock();
 }
 
 void IDecode::Main() {
     while (!isExit) {
+        if (IsPause()) {
+            XSleep(DECODE_WAIT_TIME_TWO);
+            continue;
+        }
         packsMutex.lock();
+
+        //判断音视频同步
+        if (!isAudio && synPts > 0) {
+            if (synPts < pts) {
+                packsMutex.unlock();
+                XSleep(DECODE_WAIT_TIME_ONE);
+                continue;
+            }
+        }
+
         if (packs.empty()) {
             packsMutex.unlock();
-            XSleep(DECODE_WAIT_TIME); // 所有循环的都必须添加睡眠，释放CPU
+            XSleep(DECODE_WAIT_TIME_ONE); // 所有循环的都必须添加睡眠，释放CPU
             continue;
         }
         // 取出Packet，并且从链表中删除
@@ -49,8 +76,8 @@ void IDecode::Main() {
                 if (!frame.data) {
                     break;
                 }
-                // XLOGW("RecvFrame size %d", frame.size);
                 // 发送数据给观察者-----音频输出或者视频显示
+                pts = frame.pts;
                 this->Notify(frame);
             }
         }

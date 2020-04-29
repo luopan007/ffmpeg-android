@@ -4,30 +4,32 @@ import android.content.Context;
 import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
 import android.view.SurfaceHolder;
-import android.view.SurfaceHolder.Callback;
+import android.view.View;
+
+import javax.microedition.khronos.egl.EGLConfig;
+import javax.microedition.khronos.opengles.GL10;
 
 /** 视频播放呈现类 */
-public class XPlay extends GLSurfaceView implements Runnable, Callback {
+public class XPlay extends GLSurfaceView
+        implements SurfaceHolder.Callback, GLSurfaceView.Renderer, View.OnClickListener {
     private static final String TAG = "XPlay";
 
     public XPlay(Context context) {
+        // Java new Go this
         super(context);
     }
 
     public XPlay(Context context, AttributeSet attrs) {
+        // XML Go This
         super(context, attrs);
-    }
-
-    @Override
-    public void run() {
-        // 1、打开视频，显示RGB
-        open("/sdcard/1080.mp4", getHolder().getSurface());
-        InitView(getHolder().getSurface());
+        setRenderer(this);
+        setOnClickListener(this);
     }
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        new Thread(this).start(); // SurfaceView创建成功
+        // 初始化opengl egl 显示
+        InitView(holder.getSurface());
     }
 
     @Override
@@ -36,6 +38,19 @@ public class XPlay extends GLSurfaceView implements Runnable, Callback {
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {}
 
+    @Override
+    public void onSurfaceCreated(GL10 gl, EGLConfig config) {}
+
+    @Override
+    public void onSurfaceChanged(GL10 gl, int width, int height) {}
+
+    @Override
+    public void onDrawFrame(GL10 gl) {}
+
+    @Override
+    public void onClick(View v) {
+        PlayOrPause();
+    }
     /**
      * 初始化窗口；将Java层Surface传递给Native层
      *
@@ -43,11 +58,6 @@ public class XPlay extends GLSurfaceView implements Runnable, Callback {
      */
     public native void InitView(Object surface);
 
-    /**
-     * 打开视频，显示RGB
-     *
-     * @param url 视频地址
-     * @param surface 显示对象
-     */
-    public native void open(String url, Object surface);
+    /** 暂停播放 */
+    public native void PlayOrPause();
 }

@@ -11,6 +11,8 @@ const int MAX_WAIT_STOP_TIME = 200;
 
 const int SINGLE_WAIT_STOP_TIME = 1;
 
+const int PAUSE_WAIT_STOP_TIME = 10;
+
 using namespace std;
 
 void XSleep(int mis) {
@@ -18,8 +20,20 @@ void XSleep(int mis) {
     this_thread::sleep_for(du);
 }
 
+void XThread::SetPause(bool isP) {
+    isPause = isP;
+    // 等待PAUSE_WAIT_STOP_TIME * PAUSE_WAIT_STOP_TIME毫秒
+    for (int i = 0; i < PAUSE_WAIT_STOP_TIME; i++) {
+        if (isPausing == isP) {
+            break;
+        }
+        XSleep(PAUSE_WAIT_STOP_TIME);
+    }
+}
+
 bool XThread::Start() {
     isExit = false;
+    isPause = false;
     thread th(&XThread::ThreadMain, this);
     th.detach();
     return true;

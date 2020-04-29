@@ -4,6 +4,7 @@
 
 #ifndef FFMPEG_XTEXTURE_H
 #define FFMPEG_XTEXTURE_H
+
 enum XTextureType {
     XTEXTURE_YUV420P = 0,  // Y 4  u 1 v 1
     XTEXTURE_NV12 = 25,    // Y4   uv1
@@ -31,6 +32,12 @@ public:
      * @param height
      */
     virtual void Draw(unsigned char *data[], int width, int height) = 0;
+
+    virtual void Drop() = 0;
+
+    virtual ~XTexture() {};
+protected:
+    XTexture() {};
 };
 
 

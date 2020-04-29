@@ -27,6 +27,8 @@ public:
      */
     virtual XData Resample(XData indata) = 0;
 
+    virtual void Close() = 0;
+
     /**
      * 从解封装其获取数据，然后重采样，然后发送给声卡输出
      *

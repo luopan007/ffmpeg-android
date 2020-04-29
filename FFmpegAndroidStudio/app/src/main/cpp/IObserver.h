@@ -45,7 +45,7 @@ protected:
     /**
      * 线程安全的互斥锁
      */
-    std::mutex lock;
+    std::mutex mux;
 };
 
 
