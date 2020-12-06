@@ -1,6 +1,7 @@
 *.iml
 .gradle
 /local.properties
+gradle/wrapper/gradle-5.4.1-all.zip
 .idea/*
 .DS_Store
 /build

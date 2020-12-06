@@ -17,23 +17,17 @@ public class OpenUrl extends AppCompatActivity {
         setContentView(R.layout.activity_open_url);
         btfile = findViewById(R.id.playvideo);
         btfile.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        EditText t = findViewById(R.id.fileurl);
-                        Open(t.getText().toString());
-                        finish();
-                    }
+                (View view) -> {
+                    EditText t = findViewById(R.id.fileurl);
+                    Open(t.getText().toString());
+                    finish();
                 });
         btrtmp = findViewById(R.id.playrtmp);
         btrtmp.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        EditText t = findViewById(R.id.rtmpurl);
-                        Open(t.getText().toString());
-                        finish();
-                    }
+                (View view) -> {
+                    EditText t = findViewById(R.id.rtmpurl);
+                    Open(t.getText().toString());
+                    finish();
                 });
     }
 
